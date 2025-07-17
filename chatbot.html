@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ESL ChattyBot (Clean Ending, Fast, End Corrections)</title>
+  <title>ESL ChattyBot (Standalone)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; background: #f9f9fc; }
@@ -20,7 +20,7 @@
   </style>
 </head>
 <body>
-  <h2>ESL ChattyBot</h2>
+  <h2>ESL ChattyBot/ select the voice you prefer and press enter after writing your name</h2>
   <input id="student-name" placeholder="Enter your name and press Enter..." />
   <label for="voice-select"><b>Voice:</b></label>
   <select id="voice-select">
@@ -41,21 +41,29 @@
   </div>
   <button id="download-pdf" style="display:none;">Download PDF</button>
   <script>
-    const GRAMMAR_API_URL = "https://chattybot-backend.onrender.com/api/grammar-correct";
-    const CHATBOT_API_URL = "https://chattybot-backend.onrender.com/api/chatbot";
-    const LEMONFOX_PROXY_URL = "https://chattybot-backend.onrender.com/api/lemonfox-tts";
+    // ==== PLACE YOUR API KEYS HERE ====
+    const OPENAI_API_KEY = "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";
+    const LEMONFOX_API_KEY = "pqT589X7JBTimS2MVoP1IyNOPD1iVwGX";
     const MAX_QUESTIONS = 6;
 
+    // --- Lemonfox direct (no proxy) ---
     async function speakWithLemonfox(text) {
       const voice = document.getElementById('voice-select').value;
       try {
-        const response = await fetch(LEMONFOX_PROXY_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ text: text, voice: voice })   // <--- Corrected!
-});
+        const response = await fetch("https://api.lemonfox.ai/v1/audio/speech", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + LEMONFOX_API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            input: text,
+            voice: voice,
+            response_format: "mp3"
+          })
+        });
         if (!response.ok) {
-          console.warn("Proxy error:", response.status, response.statusText);
+          alert("Lemonfox error: " + response.status + " - " + response.statusText);
           return;
         }
         const audioBlob = await response.blob();
@@ -63,7 +71,60 @@
         const audio = new Audio(audioUrl);
         audio.play();
       } catch (e) {
-        console.warn("Proxy fetch error:", e);
+        alert("Lemonfox error: " + e);
+      }
+    }
+
+    // --- OpenAI direct (no proxy) ---
+    async function getOpenAIResponse() {
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + OPENAI_API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: conversation
+          })
+        });
+        const data = await response.json();
+        if (data.choices && data.choices.length > 0) {
+          const botMsg = data.choices[0].message.content.trim();
+          conversation.push({ role: "assistant", content: botMsg });
+          return botMsg;
+        } else {
+          return "Sorry, I didn't get that.";
+        }
+      } catch (e) {
+        return "Sorry, I couldn't connect to OpenAI: " + e;
+      }
+    }
+
+    // --- Grammar correction via OpenAI (standalone) ---
+    async function correctGrammar(text) {
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + OPENAI_API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [
+              { role: "user", content: `Correct any grammar mistakes in this English sentence or passage and return only the corrected version:\n\n${text}` }
+            ]
+          })
+        });
+        const data = await response.json();
+        if (data.choices && data.choices.length > 0) {
+          return data.choices[0].message.content.trim();
+        }
+        return text;
+      } catch (e) {
+        return text;
       }
     }
 
@@ -140,7 +201,7 @@
           transcript.push({
             question: conversation[conversation.length-2]?.content || "",
             studentAnswer: transcriptText,
-            botReply: "Great job! Conversation finished." // Only this as the reply for Q6
+            botReply: "Great job! Conversation finished."
           });
         } else {
           // Normal bot reply, add to transcript
@@ -175,26 +236,6 @@
       if (recognition) recognition.start();
     };
 
-    // --- Chatbot via Backend ---
-    async function getOpenAIResponse() {
-      try {
-        const response = await fetch(CHATBOT_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "gpt-4o",
-            messages: conversation
-          })
-        });
-        const data = await response.json();
-        const botMsg = data.reply?.trim() || "Sorry, I didn't get that.";
-        conversation.push({ role: "assistant", content: botMsg });
-        return botMsg;
-      } catch (e) {
-        return "Sorry, I couldn't connect to the server.";
-      }
-    }
-
     // --- PDF Download: Grammar corrections are made HERE only! ---
     pdfBtn.onclick = async () => {
       const { jsPDF } = window.jspdf;
@@ -227,15 +268,7 @@
         // --- Grammar correction at PDF time ---
         let correctedAnswer = entry.studentAnswer;
         try {
-          const res = await fetch(GRAMMAR_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: entry.studentAnswer })
-          });
-          const data = await res.json();
-          if (data && data.corrected) {
-            correctedAnswer = data.corrected;
-          }
+          correctedAnswer = await correctGrammar(entry.studentAnswer);
         } catch (e) {}
 
         if (entry.studentAnswer !== correctedAnswer) {
