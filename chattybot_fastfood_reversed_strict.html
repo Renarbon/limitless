@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ESL ChattyBot – Fast Food Restaurant (Cashier Version, Strict Correction, Colored PDF)</title>
+  <title>ESL ChattyBot – Fast Food Restaurant (Cashier Version, read the gray parts $)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: Arial; padding: 20px; background: #f2f2f2; }
@@ -13,125 +13,120 @@
     .correction, .tip { color: #b85c00; font-size: 0.98em; margin-left: 10px; }
     input, button { padding: 10px; margin: 5px; }
     input[readonly] { background-color: #eee; }
+    #studentInput { width: 90%; padding: 8px; }
   </style>
 </head>
 <body>
   <div id="chat">
-    <h2>🍔 ESL ChattyBot – Fast Food Restaurant (Cashier Version, Strict Correction)</h2>
+    <h2>🍔 ESL ChattyBot – Fast Food Restaurant (Cashier Version, read the gray parts $)</h2>
     <label>Student Name: <input id="studentName" type="text" /></label><br>
     <label>Date: <input id="sessionDate" type="date" /></label><br>
-    <div style="margin: 12px 0; color: #444; background: #e6e6e6; border-radius: 6px; padding: 8px; max-width: 600px;">
-      <b>Instructions:</b> You are the cashier. Please read the <span style="color: #000;">gray</span> part aloud each turn. ChattyBot will play the customer.
+    <label for="voice-select"><b>Voice:</b></label>
+    <select id="voice-select">
+      <option value="adam">Adam</option>
+      <option value="sarah">Sarah</option>
+      <option value="emily">Emily</option>
+      <option value="james">James</option>
+      <option value="jenny">Jenny</option>
+      <option value="nicole">Nicole</option>
+      <option value="santa">Santa</option>
+    </select>
+    <div style="margin: 12px 0; color: #007aff; background: #e6e6ff; border-radius: 6px; padding: 8px; max-width: 600px;">
+      <b>Instructions:</b> You are the cashier. Please read the <span style="color: #007aff;">green</span>
+      part aloud each turn. ChattyBot will play the customer.
     </div>
     <div id="conversation"></div>
-    <button onclick="startRecording()">🎙️ Record</button>
+    <button onclick="startRecording()" id="recordButton">🎙️ Record</button>
     <button onclick="submitStudentResponse()" id="sendButton" disabled>📨 Send</button>
-    <input type="text" id="studentInput" readonly style="width: 90%; padding: 8px;" />
+    <input type="text" id="studentInput" readonly />
     <button onclick="downloadPDF()">⬇️ Download PDF</button>
   </div>
-
   <script>
-    // === ACTUAL SCRIPT ===
+    // === CONFIG: Set your backend URL here ===
+    const BASE_URL = "https://chattybot-backend.onrender.com";
+    const LEMONFOX_PROXY_URL = `${BASE_URL}/api/lemonfox-tts`;
+
+    // === SCRIPT DATA ===
+    // Student (cashier) lines – green
     const scriptLines = [
       "Hello! Welcome to Burger Place. May I take your order?",
       "Would you like fries or a drink with that?",
       "Is that for here or to go?",
       "Can I have your name for the order, please?",
-      "Your total is $7.50. How would you like to pay?",
+      "Your total is $7 and 50 cents. How would you like to pay?",
       "Thank you! Please wait while we prepare your order."
     ];
+    // Bot (customer) lines – blue
     const botLines = [
+      "Hi",
       "Yes, I’d like a cheeseburger, please.",
       "Just fries, thank you.",
       "To go, please.",
-      "My name is Sarah.",
+      "My name is Andy.",
       "With my credit card.",
-      "Thank you!"
+      "Ok, thank you!"
     ];
-
+    // === STATE ===
     const transcript = [];
     const conversationDiv = document.getElementById('conversation');
     let currentLine = 0;
     let tempUserText = "";
-    let selectedVoice;
 
-    // Bot voices
-    window.speechSynthesis.onvoiceschanged = () => {
-      const voices = speechSynthesis.getVoices();
-      selectedVoice = voices.find(v =>
-        v.name.includes("Google US English") ||
-        v.name.includes("Microsoft Zira") ||
-        v.name.toLowerCase().includes("english")
-      );
-    };
-
-    function speak(text) {
-      const msg = new SpeechSynthesisUtterance(text);
-      if (selectedVoice) msg.voice = selectedVoice;
-      speechSynthesis.speak(msg);
-    }
-
-    function normalize(text) {
-      return text.toLowerCase().replace(/[’'".,!?]/g,"").replace(/\s+/g," ").trim();
-    }
-
-    function isCloseEnough(answer, expected) {
-      const ans = normalize(answer);
-      const exp = normalize(expected);
-      if (ans === exp) return true;
-      const ansWords = ans.split(" ");
-      const expWords = exp.split(" ");
-      let matchCount = 0;
-      expWords.forEach(w => { if (ansWords.includes(w)) matchCount++; });
-      return matchCount / expWords.length > 0.7;
+    // --- Lemonfox via backend proxy ---
+    async function speakWithLemonfox(text) {
+      const voice = document.getElementById('voice-select').value;
+      try {
+        const response = await fetch(LEMONFOX_PROXY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, voice })
+        });
+        if (!response.ok) {
+          alert("Lemonfox error: " + response.status + " - " + response.statusText);
+          return;
+        }
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      } catch (e) {
+        alert("Lemonfox error: " + e);
+      }
     }
 
     function startRecording() {
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-      recognition.start();
-
-      recognition.onresult = function(event) {
-        tempUserText = event.results[0][0].transcript;
+      const recog = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recog.lang = 'en-US'; recog.interimResults = false; recog.maxAlternatives = 1;
+      recog.start();
+      recog.onresult = e => {
+        tempUserText = e.results[0][0].transcript;
         document.getElementById("studentInput").value = tempUserText;
         document.getElementById("sendButton").disabled = false;
       };
-
-      recognition.onerror = function(event) {
-        alert("Speech recognition error: " + event.error);
-      };
+      recog.onerror = e => alert("Speech recognition error: " + e.error);
     }
 
     function submitStudentResponse() {
       if (!tempUserText) return;
-
+      const expected = scriptLines[currentLine];
       addMessage('user', tempUserText);
 
-      // Correction
-      const expected = scriptLines[currentLine];
-      if (!isCloseEnough(tempUserText, expected)) {
-        addCorrection('correction', `The correct answer is: "${expected}"`);
-        addCorrection('tip', "Please try to match the example answer for practice.");
-      } else {
-        addCorrection('correction', "Good job!");
-        addCorrection('tip', "");
-      }
-
-      // Bot/customer reply
+      // Bot replies with the matching customer line for this step
       if (currentLine < botLines.length) {
-        addMessage('bot', botLines[currentLine]);
-        speak(botLines[currentLine]);
+        setTimeout(() => {
+          addMessage('bot', botLines[currentLine]);
+          speakWithLemonfox(botLines[currentLine]);
+        }, 900);
       }
-      currentLine++;
 
-      // End message
+      currentLine++; // <-- Only increment after both have spoken
+
+      // End of conversation check
       if (currentLine >= scriptLines.length) {
         setTimeout(() => {
-          addMessage('bot', "Great work today! See you next time.");
-          speak("Great work today! See you next time.");
-        }, 800);
+          addMessage('bot', "bye! See you next time.");
+          
+        }, 1200);
       }
 
       document.getElementById("studentInput").value = "";
@@ -139,62 +134,56 @@
       document.getElementById("sendButton").disabled = true;
     }
 
+    // === DOM HELPERS ===
     function addMessage(who, text) {
-      const div = document.createElement('div');
-      div.className = `message ${who}`;
-      div.textContent = `${who === 'user' ? 'You' : 'Bot'}: ${text}`;
-      conversationDiv.appendChild(div);
+      const d = document.createElement('div');
+      d.className = `message ${who}`;
+      d.textContent = `${who==='user'?'You':'Bot'}: ${text}`;
+      conversationDiv.appendChild(d);
       transcript.push({ who, text });
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
     }
-
-    function addCorrection(type, text) {
-      if (!text) return;
-      const div = document.createElement('div');
-      div.className = `message ${type}`;
-      div.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)}: ${text}`;
-      conversationDiv.appendChild(div);
-      transcript.push({ who: type, text });
-    }
-
+    // === PDF EXPORT ===
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const name = document.getElementById('studentName').value || 'Student';
-      const date = document.getElementById('sessionDate').value || new Date().toLocaleDateString();
-      doc.setTextColor(0, 0, 0);
+      const date = document.getElementById('sessionDate').value
+                    || new Date().toLocaleDateString();
+      doc.setTextColor(0,0,0);
       doc.text(`Conversation Transcript\nName: ${name}\nDate: ${date}`, 10, 10);
       let y = 30;
       transcript.forEach(entry => {
-        let label = entry.who === 'bot' ? 'Bot'
-          : entry.who === 'user' ? 'You'
-          : entry.who.charAt(0).toUpperCase() + entry.who.slice(1);
-
-        if (entry.who === 'user') {
-          doc.setTextColor(0, 150, 0);        // Green
-        } else if (entry.who === 'correction') {
-          doc.setTextColor(0, 0, 200);        // Blue
-        } else if (entry.who === 'tip') {
-          doc.setTextColor(184, 92, 0);       // Orange/brown
-        } else {
-          doc.setTextColor(0, 0, 0);          // Black (bot)
-        }
-
-        const lines = doc.splitTextToSize(`${label}: ${entry.text}`, 180);
+        let lbl = entry.who==='bot'?'Bot'
+                : entry.who==='user'?'You'
+                : entry.who.charAt(0).toUpperCase()+entry.who.slice(1);
+        if (entry.who==='user')       doc.setTextColor(0,150,0);
+        else if (entry.who==='correction') doc.setTextColor(0,0,200);
+        else if (entry.who==='tip')       doc.setTextColor(184,92,0);
+        else                             doc.setTextColor(0,0,0);
+        const lines = doc.splitTextToSize(`${lbl}: ${entry.text}`, 180);
         lines.forEach(line => {
           doc.text(line, 10, y);
-          y += 10;
-          if (y > 280) {
-            doc.addPage();
-            y = 20;
-          }
+          y+=10; if (y>280){ doc.addPage(); y=20; }
         });
       });
-      const filename = `${name.replace(/\s+/g, '_')}_${date.replace(/[\/]/g, '-')}_fastfood_reversed_strict.pdf`;
-      doc.save(filename);
-    }
-  </script>
+      const fn = `${name.replace(/\s+/g,'_')}_${date.replace(/\//g,'-')}_fastfood_cashier.pdf`;
+      doc.save(fn);
+    } 
 
-  <!-- Script Sample at the bottom for student reference -->
+    // === ENSURE CORRECT CHAT START ===
+    window.onload = () => {
+      conversationDiv.innerHTML = "";
+      transcript.length = 0;
+      currentLine = 0;
+      tempUserText = "";
+      addMessage('user', scriptLines[0]);
+      document.getElementById("studentInput").value = "";
+      document.getElementById("sendButton").disabled = true;
+    };
+    </script>
+
+  <!-- Script sample at the bottom for reference -->
   <div style="background-color: #f5f5f7; padding: 0 20px 20px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; font-size: 16px;">
     <div id="chatContainer" style="width: 500px; margin: auto; background-color: #f8f8f8; border: 1px solid #ccc; border-radius: 20px; padding: 10px;">
       <div style="max-width: 70%; background-color: #e6e6e6; color: #000; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: left; clear: both;">
@@ -219,10 +208,10 @@
         Can I have your name for the order, please?
       </div>
       <div style="max-width: 70%; background-color: #007aff; color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: right; clear: both;">
-        My name is Sarah.
+        My name is _______.
       </div>
       <div style="max-width: 70%; background-color: #e6e6e6; color: #000; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: left; clear: both;">
-        Your total is $7.50. How would you like to pay?
+        Your total is $7.50 How would you like to pay?
       </div>
       <div style="max-width: 70%; background-color: #007aff; color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: right; clear: both;">
         With my credit card.
@@ -246,6 +235,5 @@
         chatContainer.style.display = chatContainer.style.display === "none" ? "block" : "none";
       }
     </script>
-  </div>
 </body>
 </html>
