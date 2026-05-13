@@ -6,7 +6,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: Arial; padding: 20px; background: #f2f2f2; }
-    #chat { background: white; padding: 20px; max-width: 600px; margin: auto; border-radius: 10px; }
+    #chat { background: white; padding: 20px; max-width: 700px; margin: auto; border-radius: 10px; }
     .message { margin: 10px 0; }
     .user { color: green; }
     .bot { color: #0a1857; }
@@ -20,11 +20,18 @@
       font-size: 1.07em;
       font-weight: bold;
       letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-    textarea { width: 100%; height: 60px; margin-top: 10px; resize: none; }
-    button { padding: 10px 15px; margin: 5px 3px; }
-    #studentName { width: 80%; padding: 7px; margin-bottom: 10px; }
-    #audioStatus { color: #1976d2; margin-top: 10px; min-height: 22px; }
+    .option-box:hover {
+      background: #1a2a7a;
+    }
+    textarea { width: 100%; height: 80px; margin-top: 10px; resize: none; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
+    button { padding: 10px 15px; margin: 5px 3px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+    button:hover { opacity: 0.9; }
+    #studentName { width: 80%; padding: 7px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    #audioStatus { color: #1976d2; margin-top: 10px; min-height: 22px; font-weight: bold; }
+    .instruction { color: #666; font-size: 0.95em; font-style: italic; margin: 10px 0; }
   </style>
 </head>
 <body>
@@ -35,9 +42,11 @@
       <button onclick="startQuiz()" id="startBtn">Start Quiz</button>
     </div>
     <div id="conversation"></div>
-    <button onclick="startRecording()" id="recordBtn" style="display:none;">🎙️ Record Your Answer</button>
-    <textarea id="textOutput" readonly placeholder="Your answer will appear here..." style="display:none;"></textarea>
-    <button onclick="sendMessage()" id="sendBtn" style="display:none;">Next</button>
+    <div class="instruction" id="instructionText" style="display:none;">Read the sentence and the options below, then record yourself saying the complete sentence with the correct answer.</div>
+    <div class="options" id="optionsContainer" style="display:none;"></div>
+    <button onclick="startRecording()" id="recordBtn" style="display:none;">🎙️ Record Your Full Sentence Answer</button>
+    <textarea id="textOutput" readonly placeholder="Your recorded answer will appear here..." style="display:none;"></textarea>
+    <button onclick="sendMessage()" id="sendBtn" style="display:none;">Check Answer</button>
     <button onclick="downloadPDF()" id="downloadBtn" style="display:none;">⬇️ Download PDF</button>
     <button onclick="submitResults()" id="submitBtn" style="display:none;background:#17a317;color:#fff;">Submit Results</button>
     <div id="audioStatus"></div>
@@ -53,99 +62,100 @@
     <input type="text" name="bot-field" style="display:none;">
   </form>
   <script>
-      // ------ 1. YOUR QUIZ DATA HERE ------
+      // ------ 1. YOUR QUIZ DATA HERE (WITH COMPLETE SENTENCES) ------
    const scriptLines = [
   {
     phrase: "She enjoys _____ books in her free time.",
     options: [
-      "reading",
-      "to read",
-      "to reading"
+      "She enjoys reading books in her free time.",
+      "She enjoys to read books in her free time.",
+      "She enjoys to reading books in her free time."
     ],
     correct: 0
   },
   {
     phrase: "He wants _____ to the gym every morning.",
     options: [
-      "going",
-      "to go",
-      "goes"
+      "He wants going to the gym every morning.",
+      "He wants to go to the gym every morning.",
+      "He wants goes to the gym every morning."
     ],
     correct: 1
   },
   {
     phrase: "I finished _____ the homework an hour ago.",
     options: [
-      "to do",
-      "doing",
-      "do"
+      "I finished to do the homework an hour ago.",
+      "I finished doing the homework an hour ago.",
+      "I finished do the homework an hour ago."
     ],
     correct: 1
   },
   {
     phrase: "They decided _____ a vacation next month.",
     options: [
-      "taking",
-      "to take",
-      "take"
+      "They decided taking a vacation next month.",
+      "They decided to take a vacation next month.",
+      "They decided take a vacation next month."
     ],
     correct: 1
   },
   {
     phrase: "Swimming and _____ are great exercises.",
     options: [
-      "running",
-      "to run",
-      "run"
+      "Swimming and running are great exercises.",
+      "Swimming and to run are great exercises.",
+      "Swimming and run are great exercises."
     ],
     correct: 0
   },
   {
     phrase: "Would you like _____ some tea?",
     options: [
-      "having",
-      "to have",
-      "have"
+      "Would you like having some tea?",
+      "Would you like to have some tea?",
+      "Would you like have some tea?"
     ],
     correct: 1
   },
   {
     phrase: "She keeps _____ the same mistakes.",
     options: [
-      "making",
-      "to make",
-      "made"
+      "She keeps making the same mistakes.",
+      "She keeps to make the same mistakes.",
+      "She keeps made the same mistakes."
     ],
     correct: 0
   },
   {
     phrase: "I look forward _____ you soon.",
     options: [
-      "seeing",
-      "to seeing",
-      "to see"
+      "I look forward seeing you soon.",
+      "I look forward to seeing you soon.",
+      "I look forward to see you soon."
     ],
     correct: 1
   },
   {
     phrase: "He avoided _____ the difficult question.",
     options: [
-      "to answer",
-      "answering",
-      "answered"
+      "He avoided to answer the difficult question.",
+      "He avoided answering the difficult question.",
+      "He avoided answered the difficult question."
     ],
     correct: 1
   },
   {
     phrase: "She promised _____ on time for the meeting.",
     options: [
-      "arriving",
-      "to arrive",
-      "arrive"
+      "She promised arriving on time for the meeting.",
+      "She promised to arrive on time for the meeting.",
+      "She promised arrive on time for the meeting."
     ],
     correct: 1
   }
 ];
+
 function shuffleOptionsAndCorrectIndex() {
       scriptLines.forEach(q => {
         let arr = q.options.map((opt, idx) => ({opt, idx}));
@@ -177,6 +187,8 @@ function shuffleOptionsAndCorrectIndex() {
     const startBtn = document.getElementById('startBtn');
     const studentNameInput = document.getElementById('studentName');
     const audioStatus = document.getElementById('audioStatus');
+    const instructionText = document.getElementById('instructionText');
+    const optionsContainer = document.getElementById('optionsContainer');
 
     function startQuiz() {
       studentName = studentNameInput.value.trim();
@@ -195,47 +207,23 @@ function shuffleOptionsAndCorrectIndex() {
       nextBotPrompt();
     }
 
-    function speakWithBrowser(text) {
-      window.speechSynthesis.cancel();
-      const synth = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      synth.speak(utterance);
-    }
-
-    // GOOGLE TTS PLAY FUNCTION
-    async function playWithGoogle(text) {
-      try {
-        const response = await fetch("https://chattybot-backend.onrender.com/api/tts", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ text, voice: "en-US" })
-        });
-        if (!response.ok) throw new Error("TTS backend error");
-        const blob = await response.blob();
-        const audio = new Audio(URL.createObjectURL(blob));
-        audio.play();
-      } catch (e) {
-        console.error(e);
-        audioStatus.textContent = "Error with Google TTS: " + e.message;
-      }
-    }
-
     async function nextBotPrompt() {
       if (scriptStep < scriptLines.length) {
         const entry = scriptLines[scriptStep];
-        let html = `<div class="message bot"><b>Bot:</b> ${entry.phrase}</div>`;
-        html += `<div class="options">`;
-        entry.options.forEach(opt => {
-          html += `<div class="option-box">${opt}</div>`;
-        });
-        html += `</div>`;
+        let html = `<div class="message bot"><b>Question ${scriptStep + 1} of ${scriptLines.length}:</b> ${entry.phrase}</div>`;
         conversationDiv.innerHTML = html;
 
-        speakWithBrowser(entry.phrase);
+        // Display options as complete sentences
+        let optionsHtml = '';
+        entry.options.forEach((opt, idx) => {
+          optionsHtml += `<div class="option-box">${opt}</div>`;
+        });
+        optionsContainer.innerHTML = optionsHtml;
+        optionsContainer.style.display = 'block';
 
         textOutput.value = "";
         textOutput.style.display = "block";
+        instructionText.style.display = "block";
         recordBtn.style.display = "inline-block";
         sendBtn.style.display = "inline-block";
         downloadBtn.style.display = "none";
@@ -255,13 +243,13 @@ function shuffleOptionsAndCorrectIndex() {
           feedback = `Quiz complete! Your score is ${percent} out of 100. You can improve, ${studentName}. Try again!`;
         }
         addMessage('bot', feedback);
-        // *** USE GOOGLE TTS HERE FOR FEEDBACK ***
-        playWithGoogle(feedback);
 
         // Hide all input/buttons except PDF/submit
         textOutput.style.display = "none";
         recordBtn.style.display = "none";
         sendBtn.style.display = "none";
+        instructionText.style.display = "none";
+        optionsContainer.style.display = "none";
         downloadBtn.style.display = "inline-block";
         submitBtn.style.display = "inline-block";
 
@@ -281,17 +269,21 @@ function shuffleOptionsAndCorrectIndex() {
       recognition.maxAlternatives = 1;
       recognition.start();
       recordBtn.textContent = "Recording... (Speak now)";
+      recordBtn.disabled = true;
       recognition.onresult = function(event) {
         const userText = event.results[0][0].transcript;
         textOutput.value = userText;
-        recordBtn.textContent = "🎙️ Record Your Answer";
+        recordBtn.textContent = "🎙️ Record Your Full Sentence Answer";
+        recordBtn.disabled = false;
       };
       recognition.onerror = function(event) {
-        recordBtn.textContent = "🎙️ Record Your Answer";
+        recordBtn.textContent = "🎙️ Record Your Full Sentence Answer";
+        recordBtn.disabled = false;
         alert("Speech recognition error: " + event.error);
       };
       recognition.onend = function() {
-        recordBtn.textContent = "🎙️ Record Your Answer";
+        recordBtn.textContent = "🎙️ Record Your Full Sentence Answer";
+        recordBtn.disabled = false;
       };
     }
 
@@ -303,7 +295,7 @@ function shuffleOptionsAndCorrectIndex() {
       correctWords.forEach(word => {
         if (studentWords.includes(word)) matchCount++;
       });
-      return matchCount >= Math.max(1, Math.ceil(correctWords.length * 0.6));
+      return matchCount >= Math.max(1, Math.ceil(correctWords.length * 0.65));
     }
 
     async function sendMessage() {
@@ -355,31 +347,33 @@ function shuffleOptionsAndCorrectIndex() {
       doc.setTextColor(0, 0, 0);
       let y = 52;
       transcript.forEach((entry, i) => {
-        doc.setFontSize(12);
+        doc.setFontSize(11);
         doc.setTextColor(0, 0, 0);
         doc.text(`Q${i+1}: ${entry.phrase}`, 10, y);
-        y += 7;
-        doc.setFontSize(11);
+        y += 6;
+        doc.setFontSize(10);
         entry.options.forEach((opt, idx) => {
           if (idx === scriptLines[i].correct) {
             doc.setTextColor(0, 86, 27);
+            doc.text(`✓ ${opt}`, 14, y);
           } else {
             doc.setTextColor(0, 0, 0);
+            doc.text(`- ${opt}`, 14, y);
           }
-          doc.text(`- ${opt}`, 14, y);
-          y += 6;
+          y += 5;
         });
+        y += 2;
         if (entry.isCorrect) {
           doc.setTextColor(0, 128, 0);
           doc.text(`Your answer: ${entry.studentAnswer} ✓`, 14, y);
-          y += 8;
+          y += 6;
         } else {
           doc.setTextColor(220, 0, 0);
           doc.text(`Your answer: ${entry.studentAnswer} ✗`, 14, y);
-          y += 6;
+          y += 5;
           doc.setTextColor(0, 86, 27);
-          doc.text(`Correct answer: ${entry.correctAnswer}`, 14, y);
-          y += 8;
+          doc.text(`Correct: ${entry.correctAnswer}`, 14, y);
+          y += 6;
         }
         doc.setTextColor(0, 0, 0);
         y += 2;
