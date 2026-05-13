@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Idioms Speaking Quiz Bot</title>
+  <title>Infinitives and Gerunds Quiz Bot</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: Arial; padding: 20px; background: #f2f2f2; }
@@ -29,7 +29,7 @@
 </head>
 <body>
   <div id="chat">
-    <h2>🎤 Idioms Speaking Quiz Bot</h2>
+    <h2>🎤 Infinitives and Gerunds Quiz Bot</h2>
     <div>
       <input type="text" id="studentName" placeholder="Enter your name to start" />
       <button onclick="startQuiz()" id="startBtn">Start Quiz</button>
@@ -44,9 +44,9 @@
   </div>
   
   <!-- Netlify Hidden Form (for quiz results) -->
-  <form name="idioms-quiz" id="hiddenQuizForm" method="POST" data-netlify="true" netlify-honeypot="bot-field" style="display:none;">
-    <input type="hidden" name="form-name" value="idioms-quiz">
-    <input type="hidden" name="subject" value="Idioms Quiz Submission from idioms-quiz (%{submissionId})" />
+  <form name="infinitives-gerunds-quiz" id="hiddenQuizForm" method="POST" data-netlify="true" netlify-honeypot="bot-field" style="display:none;">
+    <input type="hidden" name="form-name" value="infinitives-gerunds-quiz">
+    <input type="hidden" name="subject" value="Infinitives and Gerunds Quiz Submission from infinitives-gerunds-quiz (%{submissionId})" />
     <input type="hidden" name="studentName" id="formStudentName">
     <input type="hidden" name="score" id="formScore">
     <input type="hidden" name="results" id="formResults">
@@ -56,94 +56,94 @@
       // ------ 1. YOUR QUIZ DATA HERE ------
    const scriptLines = [
   {
-    phrase: "A little bird told me",
+    phrase: "She enjoys _____ books in her free time.",
     options: [
-      "I heard it from a secret, reliable source",
-      "A small bird literally told me",
-      "I saw it happen myself"
+      "reading",
+      "to read",
+      "to reading"
     ],
     correct: 0
   },
   {
-    phrase: "Cheer up!",
+    phrase: "He wants _____ to the gym every morning.",
     options: [
-      "Feel happier",
-      "Yell loudly",
-      "Throw a party"
+      "going",
+      "to go",
+      "goes"
+    ],
+    correct: 1
+  },
+  {
+    phrase: "I finished _____ the homework an hour ago.",
+    options: [
+      "to do",
+      "doing",
+      "do"
+    ],
+    correct: 1
+  },
+  {
+    phrase: "They decided _____ a vacation next month.",
+    options: [
+      "taking",
+      "to take",
+      "take"
+    ],
+    correct: 1
+  },
+  {
+    phrase: "Swimming and _____ are great exercises.",
+    options: [
+      "running",
+      "to run",
+      "run"
     ],
     correct: 0
   },
   {
-    phrase: "Fire away. I'm all ears.",
+    phrase: "Would you like _____ some tea?",
     options: [
-      "Go ahead and ask your question, I'm listening",
-      "Let's start a fire together",
-      "I need to rest my ears"
+      "having",
+      "to have",
+      "have"
+    ],
+    correct: 1
+  },
+  {
+    phrase: "She keeps _____ the same mistakes.",
+    options: [
+      "making",
+      "to make",
+      "made"
     ],
     correct: 0
   },
   {
-    phrase: "Get a life!",
+    phrase: "I look forward _____ you soon.",
     options: [
-      "Do something more interesting with your time",
-      "Acquire a new existence",
-      "Purchase residential property"
+      "seeing",
+      "to seeing",
+      "to see"
     ],
-    correct: 0
+    correct: 1
   },
   {
-    phrase: "Hold on.",
+    phrase: "He avoided _____ the difficult question.",
     options: [
-      "Wait a moment",
-      "Grip something tightly",
-      "Hang clothes to dry"
+      "to answer",
+      "answering",
+      "answered"
     ],
-    correct: 0
+    correct: 1
   },
   {
-    phrase: "I couldn't care less.",
+    phrase: "She promised _____ on time for the meeting.",
     options: [
-      "I do not care at all",
-      "I wish I cared a little more",
-      "I almost care"
+      "arriving",
+      "to arrive",
+      "arrive"
     ],
-    correct: 0
-  },
-    {
-    phrase: "My lips are sealed.",
-    options: [
-      "I will not tell anyone",
-      "My lips are dry",
-      "I have closed my mouth physically"
-    ],
-    correct: 0
-  },
-  {
-    phrase: "No way!",
-    options: [
-      "Absolutely not",
-      "Let's go",
-      "There is no path"
-    ],
-    correct: 0
-  },
-  {
-    phrase: "Take it easy.",
-    options: [
-      "Relax and not worry",
-      "Carry it gently",
-      "Simplify the task"
-    ],
-    correct: 0
-  },
-  {
-    phrase: "Let me sleep on it",
-    options: [
-      "I'll think about it and decide tomorrow",
-      "Put me to sleep",
-      "Sleep on top of it physically"
-    ],
-    correct: 0
+    correct: 1
   }
 ];
 function shuffleOptionsAndCorrectIndex() {
@@ -203,13 +203,13 @@ function shuffleOptionsAndCorrectIndex() {
       synth.speak(utterance);
     }
 
-    // ELEVENLABS PLAY FUNCTION
-    async function playWithElevenLabs(text) {
+    // GOOGLE TTS PLAY FUNCTION
+    async function playWithGoogle(text) {
       try {
         const response = await fetch("https://chattybot-backend.onrender.com/api/tts", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ text })
+          body: JSON.stringify({ text, voice: "en-US" })
         });
         if (!response.ok) throw new Error("TTS backend error");
         const blob = await response.blob();
@@ -217,14 +217,14 @@ function shuffleOptionsAndCorrectIndex() {
         audio.play();
       } catch (e) {
         console.error(e);
-        audioStatus.textContent = "Error with ElevenLabs TTS: " + e.message;
+        audioStatus.textContent = "Error with Google TTS: " + e.message;
       }
     }
 
     async function nextBotPrompt() {
       if (scriptStep < scriptLines.length) {
         const entry = scriptLines[scriptStep];
-        let html = `<div class="message bot"><b>Bot:</b> What does "<b>${entry.phrase}</b>" mean?</div>`;
+        let html = `<div class="message bot"><b>Bot:</b> ${entry.phrase}</div>`;
         html += `<div class="options">`;
         entry.options.forEach(opt => {
           html += `<div class="option-box">${opt}</div>`;
@@ -232,7 +232,7 @@ function shuffleOptionsAndCorrectIndex() {
         html += `</div>`;
         conversationDiv.innerHTML = html;
 
-        speakWithBrowser(`What does "${entry.phrase}" mean?`);
+        speakWithBrowser(entry.phrase);
 
         textOutput.value = "";
         textOutput.style.display = "block";
@@ -255,8 +255,8 @@ function shuffleOptionsAndCorrectIndex() {
           feedback = `Quiz complete! Your score is ${percent} out of 100. You can improve, ${studentName}. Try again!`;
         }
         addMessage('bot', feedback);
-        // *** USE ELEVENLABS HERE FOR FEEDBACK ***
-        playWithElevenLabs(feedback);
+        // *** USE GOOGLE TTS HERE FOR FEEDBACK ***
+        playWithGoogle(feedback);
 
         // Hide all input/buttons except PDF/submit
         textOutput.style.display = "none";
@@ -342,7 +342,7 @@ function shuffleOptionsAndCorrectIndex() {
       const doc = new jsPDF();
       const now = new Date();
       doc.setFontSize(16);
-      doc.text(`Idioms Speaking Quiz`, 10, 15);
+      doc.text(`Infinitives and Gerunds Quiz`, 10, 15);
       doc.setFontSize(12);
       doc.text(`Name: ${studentName}`, 10, 23);
       doc.text(`Date: ${now.toLocaleString()}`, 10, 30);
@@ -357,7 +357,7 @@ function shuffleOptionsAndCorrectIndex() {
       transcript.forEach((entry, i) => {
         doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
-        doc.text(`Q${i+1}: What does "${entry.phrase}" mean?`, 10, y);
+        doc.text(`Q${i+1}: ${entry.phrase}`, 10, y);
         y += 7;
         doc.setFontSize(11);
         entry.options.forEach((opt, idx) => {
@@ -388,7 +388,7 @@ function shuffleOptionsAndCorrectIndex() {
           y = 15;
         }
       });
-      const fileName = `${studentName.replace(/\s+/g, '_')}_idioms_quiz.pdf`;
+      const fileName = `${studentName.replace(/\s+/g, '_')}_infinitives_gerunds_quiz.pdf`;
       doc.save(fileName);
       pdfDownloaded = true;
     }
