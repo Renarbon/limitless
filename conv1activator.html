@@ -42,14 +42,14 @@
       "Well, for example, do you have any hobbies?",
       "What about other interests?",
       "Me too! And is there anything you definitely don't enjoy?"
-      "Me neither! What a coincidence! We have a lot in common."
     ];
     const scriptLines = [
       "Sure! What would you like to know?",
       "Hobbies? Not really.",
       "Well, I like cooking and watching classic movies.",
       "Let me think … Oh, yeah! I really don't like driving.",
-         ];
+      "Me neither! What a coincidence! We have a lot in common."
+    ];
 
     let userName = "";
     let botName = "";
@@ -84,6 +84,10 @@
     function loadVoices() {
       const voices = speechSynthesis.getVoices();
       const select = document.getElementById("voice-select");
+      
+      // Only update if we have voices to load
+      if (voices.length === 0) return;
+      
       select.innerHTML = "";
 
       // Prioritize Google English voices
@@ -103,8 +107,24 @@
         select.appendChild(opt);
       });
     }
+    
+    // Set up multiple triggers for voice loading
     speechSynthesis.onvoiceschanged = loadVoices;
-    window.onload = loadVoices;
+    window.addEventListener('load', loadVoices);
+    
+    // Retry mechanism: if voices still aren't loaded after 2 seconds, try again
+    setTimeout(() => {
+      if (document.getElementById("voice-select").children.length === 0) {
+        loadVoices();
+      }
+    }, 2000);
+    
+    // Additional retry at 4 seconds
+    setTimeout(() => {
+      if (document.getElementById("voice-select").children.length === 0) {
+        loadVoices();
+      }
+    }, 4000);
 
     // === Speak with SpeechSynthesis ===
     function speakWithVoice(text) {
