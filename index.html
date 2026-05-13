@@ -2,50 +2,192 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome – ESL ChattyBot by Mr. Rene Arbon</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
     h1 {
-      color: #333;
-    }
-    a.button {
-      display: inline-block;
-      padding: 15px 30px;
-      background-color: #007bff;
       color: white;
-      font-size: 18px;
-      border-radius: 8px;
-      text-decoration: none;
-      margin-top: 20px;
-      transition: background-color 0.3s ease;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
+    
+    .subtitle {
+      color: white;
+      text-align: center;
+      font-size: 1.2em;
+      margin-bottom: 50px;
+      font-weight: 300;
+    }
+    
+    .section {
+      margin-bottom: 50px;
+    }
+    
+    .section-title {
+      color: white;
+      font-size: 1.3em;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    a.button {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px 25px;
+      background: white;
+      color: #333;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-left: 5px solid #667eea;
+    }
+    
     a.button:hover {
-      background-color: #0056b3;
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      background: #f8f9ff;
+    }
+    
+    a.button .emoji {
+      font-size: 28px;
+      margin-right: 15px;
+      min-width: 35px;
+    }
+    
+    a.button .text {
+      flex: 1;
     }
   </style>
 </head>
 <body>
-  <h1>🎤 Welcome to the ESL Chattybot (Created by Rene Arbon)</h1>
-  <a class="button" href="conv1activator.html">Practice –conv1activator</a>
-  <a class="button" href="10_Idioms.html">Practice –10 idioms quiz</a>
-  <a class="button" href="chatbot.html">Practice – 6 question open conversation</a>
-  <a class="button" href="idiomsquiz.html">Practice – Idioms quiz 1</a>
-  <a class="button" href="idiomsquiz2.html">Practice – Idioms quiz 2</a>
-  <a class="button" href="idiomsquiz3.html">Practice – Idioms quiz3</a>
-  <a class="button" href="chattybot.html">Practice – Ask for help at the airport</a>
-  <a class="button" href="chattybot_reversed.html">Practice – Ask for help at the airport reversed</a>
-  <a class="button" href="yourspeech.html">Practice – Your speech for graduration</a>
-  <a class="button" href="Peterframtom.html">Video-QUiz – The guitar story</a>
-  <a class="button" href="questgen.html">For teacher use only</a>
+  <div class="container">
+    <h1>🎤 ESL Chattybot</h1>
+    <div class="subtitle">Created by Rene Arbon</div>
+    
+    <!-- Conversation Practice -->
+    <div class="section">
+      <div class="section-title">💬 Conversation Practice</div>
+      <div class="button-grid">
+        <a class="button" href="conv1activator.html">
+          <span class="emoji">🚀</span>
+          <span class="text">Conv1 Activator</span>
+        </a>
+        <a class="button" href="chatbot.html">
+          <span class="emoji">💭</span>
+          <span class="text">6 Question Open Conversation</span>
+        </a>
+        <a class="button" href="yourspeech.html">
+          <span class="emoji">🎓</span>
+          <span class="text">Your Speech for Graduation</span>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Fast Food Practice -->
+    <div class="section">
+      <div class="section-title">🍔 Fast Food Role-Play</div>
+      <div class="button-grid">
+        <a class="button" href="chattybot_fastfood_strict.html">
+          <span class="emoji">👤</span>
+          <span class="text">Fast Food Customer</span>
+        </a>
+        <a class="button" href="chattybot_fastfood_reversed_strict.html">
+          <span class="emoji">💼</span>
+          <span class="text">Fast Food Cashier</span>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Airport Practice -->
+    <div class="section">
+      <div class="section-title">✈️ Airport Assistance Role-Play</div>
+      <div class="button-grid">
+        <a class="button" href="chattybot.html">
+          <span class="emoji">🎯</span>
+          <span class="text">Ask for Help at Airport</span>
+        </a>
+        <a class="button" href="chattybot_reversed.html">
+          <span class="emoji">🔄</span>
+          <span class="text">Ask for Help (Reversed)</span>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Idioms & Vocabulary -->
+    <div class="section">
+      <div class="section-title">📚 Idioms & Vocabulary</div>
+      <div class="button-grid">
+        <a class="button" href="10_Idioms.html">
+          <span class="emoji">🎯</span>
+          <span class="text">10 Idioms Quiz</span>
+        </a>
+        <a class="button" href="idiomsquiz.html">
+          <span class="emoji">1️⃣</span>
+          <span class="text">Idioms Quiz 1</span>
+        </a>
+        <a class="button" href="idiomsquiz2.html">
+          <span class="emoji">2️⃣</span>
+          <span class="text">Idioms Quiz 2</span>
+        </a>
+        <a class="button" href="idiomsquiz3.html">
+          <span class="emoji">3️⃣</span>
+          <span class="text">Idioms Quiz 3</span>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Video & Media -->
+    <div class="section">
+      <div class="section-title">🎬 Video Content</div>
+      <div class="button-grid">
+        <a class="button" href="Peterframtom.html">
+          <span class="emoji">🎸</span>
+          <span class="text">The Guitar Story – Video Quiz</span>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Teacher Resources -->
+    <div class="section">
+      <div class="section-title">👨‍🏫 Teacher Resources</div>
+      <div class="button-grid">
+        <a class="button" href="questgen.html">
+          <span class="emoji">🔑</span>
+          <span class="text">For Teacher Use Only</span>
+        </a>
+      </div>
+    </div>
+  </div>
 </body>
-</html><a class="button" href="chattybot_fastfood_strict.html">🍔 Practice – Fast Food Restaurant Customer</a>
-<a class="button" href="chattybot_fastfood_reversed_strict.html">🍔 Practice – Fast Food Restaurant Cashier</a>
+</html>
