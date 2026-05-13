@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ESL ChattyBot – You are the one who backed into someone's car)</title>
+  <title>ESL ChattyBot – Getting to Know You</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: Arial; padding: 20px; background: #f2f2f2; }
@@ -18,15 +18,15 @@
 </head>
 <body>
   <div id="chat">
-    <h2>🧑‍💼 ESL ChattyBot – You are the one who caused the problem, you might need to wait 3–5 seconds for voices to load)</h2>
+    <h2>🧑‍💼 ESL ChattyBot – Getting to Know You (you might need to wait 3–5 seconds for voices to load)</h2>
     <label>Your Name: <input id="studentName" type="text" autocomplete="off" /></label>
     <button id="startBtn">Start</button>
     <span style="margin-left:15px; font-size:0.98em;">Date: <span id="sessionDate"></span></span>
     <br>
-    <label for="voice-select"><b>Student Voice:</b></label>
+    <label for="voice-select"><b>Bot Voice:</b></label>
     <select id="voice-select"></select>
     <div style="margin: 12px 0; color: #007aff; background: #e6e6ff; border-radius: 6px; padding: 8px; max-width: 600px;">
-      <b>Instructions:</b> <b>You</b> are <b>A</b> (read the blue parts aloud each turn). ChattyBot will play <b>B</b> with the selected voice.
+      <b>Instructions:</b> <b>You</b> are <b>B</b> (the student, read the blue parts aloud each turn). ChattyBot will play <b>A</b> (the bot) with the selected voice.
     </div>
     <div id="conversation"></div>
     <button onclick="startRecording()" id="recordButton" disabled>🎙️ Record</button>
@@ -37,15 +37,17 @@
   <script>
     // === SCRIPT DATA ===
     const botLines = [
-      "What happened?",
-      "How bad is it?",
-      "Look, these things happen. I'm sure we can work something out."
+      "So tell me about yourself.",
+      "Well, for example, do you have any hobbies?",
+      "What about other interests?",
+      "Me too! And is there anything you definitely don't enjoy?"
     ];
     const scriptLines = [
-      "I'm really sorry, but I have some bad news.",
-      "I'm afraid I just backed into your car while I was parking mine. It was totally my fault.",
-      "Pretty bad. It's going to be expensive to fix. I'm so embarrassed.",
-      "Well, I insist on paying for it. And please accept my apology. I feel awful about it."
+      "Sure! What would you like to know?",
+      "Hobbies? Not really.",
+      "Well, I like cooking and watching classic movies.",
+      "Let me think … Oh, yeah! I really don't like driving.",
+      "Me neither! What a coincidence! We have a lot in common."
     ];
 
     let userName = "";
@@ -119,7 +121,7 @@
     function addMessage(who, text) {
       const d = document.createElement('div');
       d.className = `message ${who}`;
-      let label = who === 'user' ? userName || "A" : botName || "B";
+      let label = who === 'user' ? userName || "B" : botName || "A";
       d.textContent = `${label}: ${text}`;
       conversationDiv.appendChild(d);
       transcript.push({ who, text });
@@ -154,20 +156,22 @@
       currentLine = 0;
       conversationStarted = true;
 
-      let firstLine = scriptLines[0].replace("NAME", botName);
-      addMessage('user', firstLine);
-      document.getElementById("recordButton").disabled = false;
-      awaitingUser = true;
+      let firstLine = botLines[0];
+      addMessage('bot', firstLine);
+      speakWithVoice(firstLine).then(() => {
+        document.getElementById("recordButton").disabled = false;
+        awaitingUser = true;
+      });
     }
 
     function showBotReply() {
       if (currentLine < botLines.length) {
         setTimeout(() => {
-          addMessage('bot', botLines[currentLine]);
-          speakWithVoice(botLines[currentLine]).then(() => {
+          const line = botLines[currentLine];
+          addMessage('bot', line);
+          speakWithVoice(line).then(() => {
             currentLine++;
-            if (currentLine < scriptLines.length) {
-              addMessage('user', scriptLines[currentLine].replace("NAME", botName));
+            if (currentLine < botLines.length) {
               document.getElementById("recordButton").disabled = false;
               awaitingUser = true;
             } else {
@@ -194,7 +198,8 @@
 
     function submitUserResponse() {
       if (!tempUserText || !awaitingUser) return;
-      transcript.push({ who: "counselorResponse", text: tempUserText });
+      addMessage('user', tempUserText);
+      transcript.push({ who: "studentResponse", text: tempUserText });
       document.getElementById("studentInput").value = "";
       document.getElementById("sendButton").disabled = true;
       document.getElementById("recordButton").disabled = true;
@@ -208,7 +213,7 @@
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const name = userName || 'A';
+      const name = userName || 'B';
       const date = document.getElementById('sessionDate').textContent || new Date().toLocaleDateString();
 
       // Ensure attemptCount is set; if not, read from storage
@@ -217,10 +222,10 @@
       const dateWithAttempt = `${date} -${attemptCount}`;
 
       doc.setTextColor(0, 0, 0);
-      doc.text(`Conversation Transcript\nA: ${name}\nB: ${botName}\nDate: ${dateWithAttempt}`, 10, 10);
+      doc.text(`Conversation Transcript\nA: ${botName}\nB: ${name}\nDate: ${dateWithAttempt}`, 10, 10);
       let y = 35;
       transcript.forEach(entry => {
-        let whoLabel = entry.who === 'bot' ? botName : entry.who === 'user' ? name : 'A';
+        let whoLabel = entry.who === 'bot' ? botName : name;
         doc.setTextColor(entry.who === 'bot' ? 0 : 11, entry.who === 'bot' ? 150 : 46, entry.who === 'bot' ? 0 : 138);
         const lines = doc.splitTextToSize(`${whoLabel}: ${entry.text}`, 180);
         lines.forEach(line => {
@@ -231,7 +236,7 @@
       });
 
       const safeDate = (date.replace(/[\/]/g, '-') + `-${attemptCount}`);
-      const filename = `${name.replace(/\s+/g, '_')}_${safeDate}_unit2_student.pdf`;
+      const filename = `${name.replace(/\s+/g, '_')}_${safeDate}_conv1_student.pdf`;
       doc.save(filename);
     }
     document.getElementById("pdfBtn").onclick = downloadPDF;
