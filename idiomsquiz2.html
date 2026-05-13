@@ -20,21 +20,8 @@
       font-size: 1.07em;
       font-weight: bold;
       letter-spacing: 0.2px;
-      cursor: pointer;
-      transition: background 0.3s;
     }
-    .option-box:hover {
-      background: #0f2b8f;
-    }
-    .option-box.selected {
-      background: #1976d2;
-    }
-    .option-box.correct {
-      background: #4caf50;
-    }
-    .option-box.incorrect {
-      background: #f44336;
-    }
+    textarea { width: 100%; height: 60px; margin-top: 10px; resize: none; }
     button { padding: 10px 15px; margin: 5px 3px; cursor: pointer; }
     #studentName { width: 80%; padding: 7px; margin-bottom: 10px; }
     #audioStatus { color: #1976d2; margin-top: 10px; min-height: 22px; }
@@ -48,6 +35,9 @@
       <button onclick="startQuiz()" id="startBtn">Start Quiz</button>
     </div>
     <div id="conversation"></div>
+    <button onclick="startRecording()" id="recordBtn" style="display:none;">🎙️ Record Your Answer</button>
+    <textarea id="textOutput" readonly placeholder="Your answer will appear here..." style="display:none;"></textarea>
+    <button onclick="sendMessage()" id="sendBtn" style="display:none;">Next</button>
     <button onclick="downloadPDF()" id="downloadBtn" style="display:none;">⬇️ Download PDF</button>
     <button onclick="submitResults()" id="submitBtn" style="display:none;background:#17a317;color:#fff;">Submit Results</button>
     <div id="audioStatus"></div>
@@ -215,9 +205,11 @@
     let scores = [];
     let quizComplete = false;
     let pdfDownloaded = false;
-    let selectedAnswer = null;
 
     const conversationDiv = document.getElementById('conversation');
+    const textOutput = document.getElementById('textOutput');
+    const recordBtn = document.getElementById('recordBtn');
+    const sendBtn = document.getElementById('sendBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const submitBtn = document.getElementById('submitBtn');
     const startBtn = document.getElementById('startBtn');
@@ -247,12 +239,18 @@
         let html = `<div class="message bot"><b>Question ${scriptStep + 1} of ${scriptLines.length}</b></div>`;
         html += `<div class="message bot"><b>Bot:</b> What is the past participle of "<b>${entry.phrase}</b>"?</div>`;
         html += `<div class="options">`;
-        entry.options.forEach((opt, idx) => {
-          html += `<div class="option-box" onclick="selectAnswer(${idx})" data-index="${idx}">${opt}</div>`;
+        entry.options.forEach(opt => {
+          html += `<div class="option-box">${opt}</div>`;
         });
         html += `</div>`;
         conversationDiv.innerHTML = html;
-        selectedAnswer = null;
+
+        textOutput.value = "";
+        textOutput.style.display = "block";
+        recordBtn.style.display = "inline-block";
+        sendBtn.style.display = "inline-block";
+        downloadBtn.style.display = "none";
+        submitBtn.style.display = "none";
         audioStatus.textContent = "";
       } else {
         // Quiz is finished
@@ -270,6 +268,9 @@
         addMessage('bot', feedback);
 
         // Hide all input/buttons except PDF/submit
+        textOutput.style.display = "none";
+        recordBtn.style.display = "none";
+        sendBtn.style.display = "none";
         downloadBtn.style.display = "inline-block";
         submitBtn.style.display = "inline-block";
 
@@ -277,31 +278,54 @@
       }
     }
 
-    function selectAnswer(idx) {
-      if (quizComplete) return;
-      
-      selectedAnswer = idx;
-      const entry = scriptLines[scriptStep];
-      const isCorrect = idx === entry.correct;
-      
-      // Remove previous selection styling
-      document.querySelectorAll('.option-box').forEach(box => {
-        box.classList.remove('selected', 'correct', 'incorrect');
-      });
-      
-      // Style the selected answer
-      const optionBoxes = document.querySelectorAll('.option-box');
-      if (isCorrect) {
-        optionBoxes[idx].classList.add('correct');
-      } else {
-        optionBoxes[idx].classList.add('incorrect');
-        optionBoxes[entry.correct].classList.add('correct');
+    function startRecording() {
+      if (quizComplete) return; // Prevent recording after finish
+      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        alert('Speech recognition not supported in this browser.');
+        return;
       }
-      
-      const userText = entry.options[idx];
-      const correctAnswer = entry.options[entry.correct];
-      
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.start();
+      recordBtn.textContent = "Recording... (Speak now)";
+      recognition.onresult = function(event) {
+        const userText = event.results[0][0].transcript;
+        textOutput.value = userText;
+        recordBtn.textContent = "🎙️ Record Your Answer";
+      };
+      recognition.onerror = function(event) {
+        recordBtn.textContent = "🎙️ Record Your Answer";
+        alert("Speech recognition error: " + event.error);
+      };
+      recognition.onend = function() {
+        recordBtn.textContent = "🎙️ Record Your Answer";
+      };
+    }
+
+    function partialMatch(studentAnswer, correctAnswer) {
+      const norm = s => s.toLowerCase().replace(/[^a-z0-9 ]/gi, '').split(' ').filter(Boolean);
+      const correctWords = norm(correctAnswer);
+      const studentWords = norm(studentAnswer);
+      let matchCount = 0;
+      correctWords.forEach(word => {
+        if (studentWords.includes(word)) matchCount++;
+      });
+      return matchCount >= Math.max(1, Math.ceil(correctWords.length * 0.6));
+    }
+
+    async function sendMessage() {
+      if (quizComplete) return; // Prevent sending after finish
+      const userText = textOutput.value.trim();
+      if (!userText) {
+        alert("Please record your response first.");
+        return;
+      }
       addMessage('user', userText);
+      const entry = scriptLines[scriptStep];
+      const correctAnswer = entry.options[entry.correct];
+      const isCorrect = partialMatch(userText, correctAnswer);
       transcript.push({
         phrase: entry.phrase,
         options: entry.options,
@@ -311,11 +335,7 @@
       });
       scores.push(isCorrect);
       scriptStep++;
-      
-      // Auto-advance after 1.5 seconds
-      setTimeout(() => {
-        nextBotPrompt();
-      }, 1500);
+      nextBotPrompt();
     }
 
     function addMessage(who, text) {
