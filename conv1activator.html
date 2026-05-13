@@ -10,6 +10,7 @@
     .message { margin: 10px 0; }
     .user { color: #0b2e8a; }
     .bot { color: green; }
+    .student-script { color: #0b2e8a; background-color: #e6f0ff; padding: 10px; border-left: 4px solid #0b2e8a; margin: 10px 0; border-radius: 4px; }
     input, button { padding: 10px; margin: 5px; }
     input[readonly] { background-color: #eee; }
     #studentInput { width: 90%; padding: 8px; }
@@ -128,6 +129,15 @@
       conversationDiv.scrollTop = conversationDiv.scrollHeight;
     }
 
+    function addStudentScript(text) {
+      const d = document.createElement('div');
+      d.className = 'student-script';
+      let label = userName || "B";
+      d.textContent = `${label}: ${text}`;
+      conversationDiv.appendChild(d);
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+    }
+
     document.getElementById("startBtn").onclick = startConversation;
     document.getElementById("studentName").addEventListener("keydown", e => {
       if (e.key === "Enter") startConversation();
@@ -159,6 +169,7 @@
       let firstLine = botLines[0];
       addMessage('bot', firstLine);
       speakWithVoice(firstLine).then(() => {
+        addStudentScript(scriptLines[0]);
         document.getElementById("recordButton").disabled = false;
         awaitingUser = true;
       });
@@ -171,7 +182,8 @@
           addMessage('bot', line);
           speakWithVoice(line).then(() => {
             currentLine++;
-            if (currentLine < botLines.length) {
+            if (currentLine < scriptLines.length) {
+              addStudentScript(scriptLines[currentLine]);
               document.getElementById("recordButton").disabled = false;
               awaitingUser = true;
             } else {
