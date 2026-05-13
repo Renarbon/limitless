@@ -53,7 +53,8 @@
 
     let userName = "";
     let botName = "";
-    let currentLine = 0;
+    let currentBotLine = 0;
+    let currentStudentLine = 0;
     let tempUserText = "";
     let awaitingUser = false;
     let conversationStarted = false;
@@ -183,7 +184,8 @@
       document.getElementById("studentName").disabled = true;
       conversationDiv.innerHTML = "";
       transcript.length = 0;
-      currentLine = 0;
+      currentBotLine = 0;
+      currentStudentLine = 0;
       conversationStarted = true;
 
       let firstLine = botLines[0];
@@ -196,14 +198,15 @@
     }
 
     function showBotReply() {
-      if (currentLine < botLines.length) {
+      currentBotLine++;
+      if (currentBotLine < botLines.length) {
         setTimeout(() => {
-          const line = botLines[currentLine];
+          const line = botLines[currentBotLine];
           addMessage('bot', line);
           speakWithVoice(line).then(() => {
-            currentLine++;
-            if (currentLine < scriptLines.length) {
-              addStudentScript(scriptLines[currentLine]);
+            currentStudentLine++;
+            if (currentStudentLine < scriptLines.length) {
+              addStudentScript(scriptLines[currentStudentLine]);
               document.getElementById("recordButton").disabled = false;
               awaitingUser = true;
             } else {
