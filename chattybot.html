@@ -10,8 +10,9 @@
     .message { margin: 10px 0; }
     .user { color: green; }
     .bot { color: blue; }
-    input, button { padding: 10px; margin: 5px; }
+    input, button, select { padding: 10px; margin: 5px; }
     input[readonly] { background-color: #eee; }
+    #voiceSelect { padding: 10px; margin: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -19,6 +20,10 @@
     <h2>🎤 ESL ChattyBot</h2>
     <label>Student Name: <input id="studentName" type="text" /></label><br>
     <label>Date: <input id="sessionDate" type="date" /></label><br>
+    <label for="voiceSelect"><b>Bot Voice:</b></label>
+    <select id="voiceSelect">
+      <option value="">Loading voices...</option>
+    </select><br>
     <div id="conversation"></div>
     <button onclick="startRecording()">🎙️ Record</button>
     <button onclick="submitStudentResponse()" id="sendButton" disabled>📨 Send</button>
@@ -32,9 +37,9 @@
     const scriptLines = [
       "Excuse me. Can I borrow your pen?",
       "I need to go to the restroom, would you mind taking a look at my things for a moment?",
-      "Thanks, if it hadn’t been for you, I wouldn’t have been able to go to the restroom.",
+      "Thanks, if it hadn't been for you, I wouldn't have been able to go to the restroom.",
       "Oh, the announcer is calling us, are you taking the same plane?",
-      "Take a look at the script. If it doesn’t match your answers correctly, say 'yes' and we’ll do it again. Would you like to practice again?"
+      "Take a look at the script. If it doesn't match your answers correctly, say 'yes' and we'll do it again. Would you like to practice again?"
     ];
 
     let currentLine = 0;
@@ -42,18 +47,67 @@
     let tempUserText = "";
     let selectedVoice;
 
-    window.speechSynthesis.onvoiceschanged = () => {
+    // Populate voice dropdown with available voices
+    function populateVoices() {
       const voices = speechSynthesis.getVoices();
-      selectedVoice = voices.find(v =>
-        v.name.includes("Google US English") ||
-        v.name.includes("Microsoft Zira") ||
-        v.name.toLowerCase().includes("english")
-      );
-    };
+      const voiceSelect = document.getElementById('voiceSelect');
+      voiceSelect.innerHTML = '';
+
+      // Filter for English voices (prioritize Google voices)
+      const englishVoices = voices.filter(v => v.lang.startsWith('en-'));
+      const googleVoices = englishVoices.filter(v => v.name.includes('Google'));
+      const otherVoices = englishVoices.filter(v => !v.name.includes('Google'));
+
+      // Add Google voices first
+      if (googleVoices.length > 0) {
+        const group1 = document.createElement('optgroup');
+        group1.label = 'Google Voices';
+        googleVoices.forEach(v => {
+          const option = document.createElement('option');
+          option.value = v.name;
+          option.textContent = v.name;
+          group1.appendChild(option);
+        });
+        voiceSelect.appendChild(group1);
+      }
+
+      // Add other voices
+      if (otherVoices.length > 0) {
+        const group2 = document.createElement('optgroup');
+        group2.label = 'Other Voices';
+        otherVoices.forEach(v => {
+          const option = document.createElement('option');
+          option.value = v.name;
+          option.textContent = v.name;
+          group2.appendChild(option);
+        });
+        voiceSelect.appendChild(group2);
+      }
+
+      // Set default to first Google voice or first English voice
+      if (googleVoices.length > 0) {
+        voiceSelect.value = googleVoices[0].name;
+        selectedVoice = googleVoices[0];
+      } else if (englishVoices.length > 0) {
+        voiceSelect.value = englishVoices[0].name;
+        selectedVoice = englishVoices[0];
+      }
+    }
+
+    // Listen for voice selection change
+    document.getElementById('voiceSelect').addEventListener('change', function() {
+      const voices = speechSynthesis.getVoices();
+      selectedVoice = voices.find(v => v.name === this.value);
+    });
+
+    // Populate voices when they're ready
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+    populateVoices();
 
     function speak(text) {
       const msg = new SpeechSynthesisUtterance(text);
       if (selectedVoice) msg.voice = selectedVoice;
+      msg.rate = 0.95; // Slightly slower for clarity
       speechSynthesis.speak(msg);
     }
 
@@ -149,7 +203,7 @@
   </script>
 
   <!-- Instruction + Sample Script -->
-  <div style="background-color: #f5f5f7; padding: 0 20px 20px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; font-size: 16px;">
+  <div style="background-color: #f5f5f7; padding: 0 20px 20px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">
     <div style="margin: 20px auto 10px auto; max-width: 500px; font-size: 14px; background: #fff3cd; border: 1px solid #ffeeba; padding: 10px; border-radius: 8px;">
       <strong>Instructions:</strong><br>
       Please read only the <span style="color: #007aff;">blue</span> parts of the conversation. ChattyBot will read the gray parts.<br>
@@ -167,13 +221,13 @@
         I need to go to the restroom,would you mind taking a look at my things for a moment?
       </div>
       <div style="max-width: 70%; background-color: #007aff; color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: right; clear: both;">
-        No problem, I’ll take care of them.
+        No problem, I'll take care of them.
       </div>
       <div style="max-width: 70%; background-color: #e6e6e6; color: #000; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: left; clear: both;">
-        Thanks, if it hadn’t been for you, I wouldn’t have been able to go to the restroom.
+        Thanks, if it hadn't been for you, I wouldn't have been able to go to the restroom.
       </div>
       <div style="max-width: 70%; background-color: #007aff; color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: right; clear: both;">
-        Glad to help, don’t be afraid to ask.
+        Glad to help, don't be afraid to ask.
       </div>
       <div style="max-width: 70%; background-color: #e6e6e6; color: #000; padding: 10px; margin-bottom: 10px; border-radius: 15px; float: left; clear: both;">
         oh, the announcer is calling us, are you taking the same plane?.
