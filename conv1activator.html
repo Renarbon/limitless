@@ -1,230 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Hotel Management Roleplay - ESL Speaking</title>
+  <meta charset="UTF-8" />
+  <title>ESL ChattyBot – You are the one who backed into someone's car)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; max-width: 650px; margin: 30px auto; padding: 2em; border-radius: 16px; box-shadow: 0 2px 12px #ccc; }
-    h2 { color: #4B60E8; }
-    label, input, button { font-size: 1em; }
-    textarea { width: 100%; min-height: 3em; margin-bottom: 1em; }
-    .script { background: #e9f3ff; padding: 1em; border-radius: 10px; margin-bottom: 1em; }
-    .section { margin-bottom: 2em; }
-    .recorder-controls { margin: 10px 0; }
-    .download-btn { margin-top: 1em; background: #4B60E8; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; }
-    .audio-play { margin: 10px 0; }
-    .bot-line { font-weight: bold; color: #3a4a7f; }
-    .student-line { font-weight: bold; color: #127650; }
+    body { font-family: Arial; padding: 20px; background: #f2f2f2; }
+    #chat { background: white; padding: 20px; max-width: 700px; margin: auto; border-radius: 10px; }
+    .message { margin: 10px 0; }
+    .user { color: #0b2e8a; }
+    .bot { color: green; }
+    input, button { padding: 10px; margin: 5px; }
+    input[readonly] { background-color: #eee; }
+    #studentInput { width: 90%; padding: 8px; }
+    #pdfBtn { margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h2>Hotel Management Roleplay</h2>
-  <p>Instructions: Enter your name, then practice speaking with the bot. First, you'll play "B" and reply to the bot. Then, you'll reverse and play "A". Download your recordings when done to upload to Google Classroom.</p>
-  
-  <div class="section">
-    <label for="studentName"><b>Your Name:</b></label>
-    <input id="studentName" type="text" placeholder="Enter your name" required>
-  </div>
-
-  <div class="section script">
-    <b>Script:</b><br>
-    <span class="bot-line">A: So, Andy, what brings you here today?</span><br>
-    <span class="student-line">B: I'd like some advice. I've been considering taking up hotel management.</span><br>
-    <span class="bot-line">A: Hotel management. Correct me if I'm wrong, but weren't you studying marine biology?</span><br>
-    <span class="student-line">B: I was. But I've given it some thought, and I've decided I'm not cut out for science.</span><br>
-    <span class="bot-line">A: OK. So how can I help?</span><br>
-    <span class="student-line">B: Well, I'd like to enroll in a good program. I was hoping you could steer me in the right direction.</span><br>
-    <span class="bot-line">A: Give me a day or two to look into it. I'll get back to you before the end of the week.</span><br>
-    <span class="student-line">B: That's great.</span><br>
-    <span class="bot-line">A: My pleasure. And I'd be more than happy to write you a recommendation if you decide to apply.</span>
-  </div>
-  
-  <!-- Part 1: Student plays B -->
-  <div class="section" id="partB-section">
-    <h3>Part 1: You are <span class="student-line">B</span></h3>
-    <button onclick="startRoleplay('B')">Start Part 1</button>
-    <div id="partB-roleplay" style="display:none;">
-      <div id="partB-lines"></div>
-      <div class="recorder-controls">
-        <button onclick="startRecording('B')" id="startRecB">🎤 Start Recording</button>
-        <button onclick="stopRecording('B')" id="stopRecB" disabled>⏹️ Stop Recording</button>
-        <audio id="audioB" class="audio-play" controls style="display:none;"></audio>
-      </div>
+  <div id="chat">
+    <h2>🧑‍💼 ESL ChattyBot – You are the one who caused the problem, you might need to wait 3–5 seconds for voices to load)</h2>
+    <label>Your Name: <input id="studentName" type="text" autocomplete="off" /></label>
+    <button id="startBtn">Start</button>
+    <span style="margin-left:15px; font-size:0.98em;">Date: <span id="sessionDate"></span></span>
+    <br>
+    <label for="voice-select"><b>Student Voice:</b></label>
+    <select id="voice-select"></select>
+    <div style="margin: 12px 0; color: #007aff; background: #e6e6ff; border-radius: 6px; padding: 8px; max-width: 600px;">
+      <b>Instructions:</b> <b>You</b> are <b>A</b> (read the blue parts aloud each turn). ChattyBot will play <b>B</b> with the selected voice.
     </div>
+    <div id="conversation"></div>
+    <button onclick="startRecording()" id="recordButton" disabled>🎙️ Record</button>
+    <button onclick="submitUserResponse()" id="sendButton" disabled>📨 Send</button>
+    <input type="text" id="studentInput" readonly />
+    <button onclick="downloadPDF()" id="pdfBtn" disabled>⬇️ Download PDF</button>
   </div>
-  
-  <!-- Part 2: Student plays A -->
-  <div class="section" id="partA-section">
-    <h3>Part 2: You are <span class="bot-line">A</span></h3>
-    <button onclick="startRoleplay('A')">Start Part 2</button>
-    <div id="partA-roleplay" style="display:none;">
-      <div id="partA-lines"></div>
-      <div class="recorder-controls">
-        <button onclick="startRecording('A')" id="startRecA">🎤 Start Recording</button>
-        <button onclick="stopRecording('A')" id="stopRecA" disabled>⏹️ Stop Recording</button>
-        <audio id="audioA" class="audio-play" controls style="display:none;"></audio>
-      </div>
-    </div>
-  </div>
-  
-  <button class="download-btn" onclick="downloadRecordings()">⬇️ Download My Recordings</button>
-  
   <script>
-    // ==== CONFIGURATION ====
-    const LEMONFOX_API_URL = "https://chattybot-backend.onrender.com/api/lemonfox-tts"; // Update as needed
-    const LEMONFOX_VOICE_A = "en-US-AndyNeural";  // Lemonfox voice for 'A'
-    const LEMONFOX_VOICE_B = "en-US-JaneNeural";  // Lemonfox voice for 'B'
-    // If you have other voices or IDs from Lemonfox, adjust above
-
-    // ==== SCRIPT ====
+    // === SCRIPT DATA ===
+    const botLines = [
+      "What happened?",
+      "How bad is it?",
+      "Look, these things happen. I'm sure we can work something out."
+    ];
     const scriptLines = [
-      { role: "A", text: "So, Andy, what brings you here today?" },
-      { role: "B", text: "I'd like some advice. I've been considering taking up hotel management." },
-      { role: "A", text: "Hotel management. Correct me if I'm wrong, but weren't you studying marine biology?" },
-      { role: "B", text: "I was. But I've given it some thought, and I've decided I'm not cut out for science." },
-      { role: "A", text: "OK. So how can I help?" },
-      { role: "B", text: "Well, I'd like to enroll in a good program. I was hoping you could steer me in the right direction." },
-      { role: "A", text: "Give me a day or two to look into it. I'll get back to you before the end of the week." },
-      { role: "B", text: "That's great." },
-      { role: "A", text: "My pleasure. And I'd be more than happy to write you a recommendation if you decide to apply." }
+      "I'm really sorry, but I have some bad news.",
+      "I'm afraid I just backed into your car while I was parking mine. It was totally my fault.",
+      "Pretty bad. It's going to be expensive to fix. I'm so embarrassed.",
+      "Well, I insist on paying for it. And please accept my apology. I feel awful about it."
     ];
 
-    // ==== UI SETUP ====
-    function replaceName(text) {
-      const name = document.getElementById('studentName').value.trim() || "Andy";
-      return text.replace(/Andy/g, name);
-    }
+    let userName = "";
+    let botName = "";
+    let currentLine = 0;
+    let tempUserText = "";
+    let awaitingUser = false;
+    let conversationStarted = false;
+    const transcript = [];
+    const conversationDiv = document.getElementById('conversation');
 
-    function renderRoleplay(role) {
-      let html = '';
-      scriptLines.forEach((line, i) => {
-        if (role === 'B' && line.role === 'A') {
-          html += `<button onclick="playLemonfoxTTS('${replaceName(line.text)}','${LEMONFOX_VOICE_A}')">🔊 ${replaceName(line.text)}</button><br>`;
-        }
-        if (role === 'B' && line.role === 'B') {
-          html += `<span class="student-line">Your turn: ${line.text}</span><br>`;
-        }
-        if (role === 'A' && line.role === 'B') {
-          html += `<button onclick="playLemonfoxTTS('${line.text}','${LEMONFOX_VOICE_B}')">🔊 ${line.text}</button><br>`;
-        }
-        if (role === 'A' && line.role === 'A') {
-          html += `<span class="bot-line">Your turn: ${replaceName(line.text)}</span><br>`;
-        }
+    // --- Attempt tracking (local only) ---
+    // Tracks attempts per student locally. The attempt number will be appended to the Date in the PDF.
+    function attemptsStorageKey(name) {
+      return `unit2comactivator_attempts_${name.replace(/\s+/g,'_').toLowerCase()}`;
+    }
+    function incrementAttempts(name) {
+      const key = attemptsStorageKey(name);
+      const current = parseInt(localStorage.getItem(key) || '0', 10);
+      const next = current + 1;
+      localStorage.setItem(key, String(next));
+      return next;
+    }
+    function getAttempts(name) {
+      const key = attemptsStorageKey(name);
+      return parseInt(localStorage.getItem(key) || '0', 10);
+    }
+    let attemptCount = 0; // set when starting the conversation
+
+    document.getElementById("sessionDate").textContent = new Date().toLocaleDateString();
+
+    // === Load voices (Google English voices if available) ===
+    function loadVoices() {
+      const voices = speechSynthesis.getVoices();
+      const select = document.getElementById("voice-select");
+      select.innerHTML = "";
+
+      // Prioritize Google English voices
+      const englishVoices = voices.filter(v => v.lang && v.lang.startsWith("en"));
+      englishVoices.sort((a, b) => {
+        const aGoogle = a.name.toLowerCase().includes("google");
+        const bGoogle = b.name.toLowerCase().includes("google");
+        if (aGoogle && !bGoogle) return -1;
+        if (!aGoogle && bGoogle) return 1;
+        return (a.name || "").localeCompare(b.name || "");
       });
-      if (role === 'B') document.getElementById('partB-lines').innerHTML = html;
-      else document.getElementById('partA-lines').innerHTML = html;
+
+      englishVoices.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v.name;
+        opt.textContent = v.name + " (" + v.lang + ")";
+        select.appendChild(opt);
+      });
+    }
+    speechSynthesis.onvoiceschanged = loadVoices;
+    window.onload = loadVoices;
+
+    // === Speak with SpeechSynthesis ===
+    function speakWithVoice(text) {
+      return new Promise(resolve => {
+        const utter = new SpeechSynthesisUtterance(text);
+        const voiceName = document.getElementById('voice-select').value;
+        const voices = speechSynthesis.getVoices();
+        const voice = voices.find(v => v.name === voiceName);
+        if (voice) utter.voice = voice;
+        utter.onend = resolve;
+        speechSynthesis.speak(utter);
+      });
     }
 
-    function startRoleplay(role) {
-      if (!document.getElementById('studentName').value.trim()) {
-        alert('Please enter your name first!');
+    function addMessage(who, text) {
+      const d = document.createElement('div');
+      d.className = `message ${who}`;
+      let label = who === 'user' ? userName || "A" : botName || "B";
+      d.textContent = `${label}: ${text}`;
+      conversationDiv.appendChild(d);
+      transcript.push({ who, text });
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+    }
+
+    document.getElementById("startBtn").onclick = startConversation;
+    document.getElementById("studentName").addEventListener("keydown", e => {
+      if (e.key === "Enter") startConversation();
+    });
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function startConversation() {
+      if (conversationStarted) return;
+      userName = document.getElementById("studentName").value.trim();
+      if (!userName) {
+        alert("Please enter your name.");
         return;
       }
-      if (role === 'B') {
-        document.getElementById('partB-roleplay').style.display = '';
-        renderRoleplay('B');
+
+      // increment local attempts for this student/assignment
+      attemptCount = incrementAttempts(userName);
+
+      botName = capitalize(document.getElementById('voice-select').value || '');
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("studentName").disabled = true;
+      conversationDiv.innerHTML = "";
+      transcript.length = 0;
+      currentLine = 0;
+      conversationStarted = true;
+
+      let firstLine = scriptLines[0].replace("NAME", botName);
+      addMessage('user', firstLine);
+      document.getElementById("recordButton").disabled = false;
+      awaitingUser = true;
+    }
+
+    function showBotReply() {
+      if (currentLine < botLines.length) {
+        setTimeout(() => {
+          addMessage('bot', botLines[currentLine]);
+          speakWithVoice(botLines[currentLine]).then(() => {
+            currentLine++;
+            if (currentLine < scriptLines.length) {
+              addMessage('user', scriptLines[currentLine].replace("NAME", botName));
+              document.getElementById("recordButton").disabled = false;
+              awaitingUser = true;
+            } else {
+              document.getElementById("pdfBtn").disabled = false;
+            }
+          });
+        }, 800);
       } else {
-        document.getElementById('partA-roleplay').style.display = '';
-        renderRoleplay('A');
+        document.getElementById("pdfBtn").disabled = false;
       }
     }
 
-    // ==== Lemonfox TTS ====
-    async function playLemonfoxTTS(text, voice) {
-      const name = document.getElementById('studentName').value.trim() || "Andy";
-      const btn = event.target;
-      btn.disabled = true; btn.innerText = "Loading...";
+    function startRecording() {
+      const recog = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recog.lang = 'en-US'; recog.interimResults = false; recog.maxAlternatives = 1;
+      recog.start();
+      recog.onresult = e => {
+        tempUserText = e.results[0][0].transcript;
+        document.getElementById("studentInput").value = tempUserText;
+        document.getElementById("sendButton").disabled = false;
+      };
+      recog.onerror = e => alert("Speech recognition error: " + e.error);
+    }
 
-      try {
-        const response = await fetch(LEMONFOX_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, voice, studentName: name })
+    function submitUserResponse() {
+      if (!tempUserText || !awaitingUser) return;
+      transcript.push({ who: "counselorResponse", text: tempUserText });
+      document.getElementById("studentInput").value = "";
+      document.getElementById("sendButton").disabled = true;
+      document.getElementById("recordButton").disabled = true;
+      tempUserText = "";
+      awaitingUser = false;
+      showBotReply();
+    }
+    document.getElementById("sendButton").onclick = submitUserResponse;
+
+    // === PDF EXPORT ===
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const name = userName || 'A';
+      const date = document.getElementById('sessionDate').textContent || new Date().toLocaleDateString();
+
+      // Ensure attemptCount is set; if not, read from storage
+      if (!attemptCount) attemptCount = getAttempts(userName) || 0;
+
+      const dateWithAttempt = `${date} -${attemptCount}`;
+
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Conversation Transcript\nA: ${name}\nB: ${botName}\nDate: ${dateWithAttempt}`, 10, 10);
+      let y = 35;
+      transcript.forEach(entry => {
+        let whoLabel = entry.who === 'bot' ? botName : entry.who === 'user' ? name : 'A';
+        doc.setTextColor(entry.who === 'bot' ? 0 : 11, entry.who === 'bot' ? 150 : 46, entry.who === 'bot' ? 0 : 138);
+        const lines = doc.splitTextToSize(`${whoLabel}: ${entry.text}`, 180);
+        lines.forEach(line => {
+          doc.text(line, 10, y);
+          y += 10;
+          if (y > 280) { doc.addPage(); y = 20; }
         });
-        if (!response.ok) throw new Error("TTS error");
-        const { audioUrl, audioBase64 } = await response.json();
-
-        let audioSrc;
-        if (audioUrl) audioSrc = audioUrl;
-        else if (audioBase64) audioSrc = "data:audio/mp3;base64," + audioBase64;
-        else throw new Error("No audio found");
-
-        const audio = new Audio(audioSrc);
-        audio.play();
-      } catch (e) {
-        alert('TTS failed. Please try again.');
-      }
-      btn.disabled = false; btn.innerText = "🔊 " + text;
-    }
-
-    // ==== Recording student ====
-    let recorderB, chunksB = [];
-    let recorderA, chunksA = [];
-    let audioBlobB, audioBlobA;
-
-    function startRecording(role) {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        if (role === 'B') {
-          recorderB = new MediaRecorder(stream);
-          chunksB = [];
-          recorderB.ondataavailable = e => chunksB.push(e.data);
-          recorderB.onstop = () => {
-            audioBlobB = new Blob(chunksB, { 'type': 'audio/webm' });
-            const audioURL = URL.createObjectURL(audioBlobB);
-            document.getElementById('audioB').src = audioURL;
-            document.getElementById('audioB').style.display = '';
-          };
-          recorderB.start();
-          document.getElementById('startRecB').disabled = true;
-          document.getElementById('stopRecB').disabled = false;
-        } else {
-          recorderA = new MediaRecorder(stream);
-          chunksA = [];
-          recorderA.ondataavailable = e => chunksA.push(e.data);
-          recorderA.onstop = () => {
-            audioBlobA = new Blob(chunksA, { 'type': 'audio/webm' });
-            const audioURL = URL.createObjectURL(audioBlobA);
-            document.getElementById('audioA').src = audioURL;
-            document.getElementById('audioA').style.display = '';
-          };
-          recorderA.start();
-          document.getElementById('startRecA').disabled = true;
-          document.getElementById('stopRecA').disabled = false;
-        }
       });
-    }
 
-    function stopRecording(role) {
-      if (role === 'B' && recorderB && recorderB.state === "recording") {
-        recorderB.stop();
-        document.getElementById('startRecB').disabled = false;
-        document.getElementById('stopRecB').disabled = true;
-      }
-      if (role === 'A' && recorderA && recorderA.state === "recording") {
-        recorderA.stop();
-        document.getElementById('startRecA').disabled = false;
-        document.getElementById('stopRecA').disabled = true;
-      }
+      const safeDate = (date.replace(/[\/]/g, '-') + `-${attemptCount}`);
+      const filename = `${name.replace(/\s+/g, '_')}_${safeDate}_unit2_student.pdf`;
+      doc.save(filename);
     }
-
-    function downloadRecordings() {
-      const name = document.getElementById('studentName').value.trim();
-      if (!audioBlobB && !audioBlobA) { alert("Please record both parts!"); return; }
-      if (audioBlobB) {
-        const urlB = URL.createObjectURL(audioBlobB);
-        const aB = document.createElement('a');
-        aB.href = urlB;
-        aB.download = `${name}_PartB.webm`;
-        aB.click();
-      }
-      if (audioBlobA) {
-        const urlA = URL.createObjectURL(audioBlobA);
-        const aA = document.createElement('a');
-        aA.href = urlA;
-        aA.download = `${name}_PartA.webm`;
-        aA.click();
-      }
-    }
+    document.getElementById("pdfBtn").onclick = downloadPDF;
   </script>
 </body>
 </html>
