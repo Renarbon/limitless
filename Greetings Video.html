@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Greetings Around the World Quiz</title>
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#eef2ff,#f8fbff);
+    margin:0;
+    padding:20px;
+    color:#333;
+}
+
+.container{
+    max-width:950px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    color:#2b4eff;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    text-align:center;
+    margin-bottom:25px;
+    color:#666;
+}
+
+.video-container{
+    position: relative;
+    width:100%;
+    padding-bottom:56.25%;
+    height:0;
+    overflow:hidden;
+    border-radius:15px;
+    margin-bottom:30px;
+}
+
+.video-container iframe{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    border:none;
+}
+
+.question{
+    background:#f9f9f9;
+    padding:18px;
+    border-radius:15px;
+    margin-bottom:20px;
+}
+
+.question h3{
+    margin-top:0;
+}
+
+label{
+    display:block;
+    margin:10px 0;
+    padding:8px;
+    border-radius:8px;
+    transition:0.2s;
+    cursor:pointer;
+}
+
+label:hover{
+    background:#edf2ff;
+}
+
+button{
+    display:block;
+    margin:35px auto;
+    padding:14px 30px;
+    border:none;
+    border-radius:12px;
+    background:#2b4eff;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+button:hover{
+    background:#1f3ad4;
+    transform:scale(1.03);
+}
+
+#result{
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    margin-top:20px;
+}
+
+.correct{
+    color:green;
+}
+
+.incorrect{
+    color:#d62828;
+}
+
+.footer{
+    text-align:center;
+    margin-top:30px;
+    color:#777;
+    font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🌍 Greetings Around the World Quiz</h1>
+
+<p class="subtitle">
+Watch the video and answer the questions below.
+</p>
+
+<div class="video-container">
+<iframe 
+src="https://www.youtube.com/embed/Sfq99s_SV2M"
+allowfullscreen>
+</iframe>
+</div>
+
+<form id="quizForm">
+
+<div class="question">
+<h3>1. What do people do in Tibet when greeting?</h3>
+
+<label><input type="radio" name="q1" value="a"> Bow</label>
+<label><input type="radio" name="q1" value="b"> Stick out their tongue</label>
+<label><input type="radio" name="q1" value="c"> Clap hands</label>
+</div>
+
+<div class="question">
+<h3>2. In some Gulf countries, people greet by...</h3>
+
+<label><input type="radio" name="q2" value="a"> Hugging</label>
+<label><input type="radio" name="q2" value="b"> Shaking hands</label>
+<label><input type="radio" name="q2" value="c"> Bumping noses</label>
+</div>
+
+<div class="question">
+<h3>3. In many European and South American countries, people usually...</h3>
+
+<label><input type="radio" name="q3" value="a"> Air kiss on the cheeks</label>
+<label><input type="radio" name="q3" value="b"> Bow deeply</label>
+<label><input type="radio" name="q3" value="c"> Touch foreheads</label>
+</div>
+
+<div class="question">
+<h3>4. What do the Maori people in New Zealand do?</h3>
+
+<label><input type="radio" name="q4" value="a"> Shake hands</label>
+<label><input type="radio" name="q4" value="b"> Rub noses and foreheads</label>
+<label><input type="radio" name="q4" value="c"> Snap fingers</label>
+</div>
+
+<div class="question">
+<h3>5. In Zimbabwe and Mozambique, people greet by...</h3>
+
+<label><input type="radio" name="q5" value="a"> Clapping hands</label>
+<label><input type="radio" name="q5" value="b"> Bowing</label>
+<label><input type="radio" name="q5" value="c"> Kissing cheeks</label>
+</div>
+
+<div class="question">
+<h3>6. In most East Asian countries, people...</h3>
+
+<label><input type="radio" name="q6" value="a"> Hug</label>
+<label><input type="radio" name="q6" value="b"> Bow</label>
+<label><input type="radio" name="q6" value="c"> Rub noses</label>
+</div>
+
+<div class="question">
+<h3>7. In Southeast Asian countries, people press their palms together and...</h3>
+
+<label><input type="radio" name="q7" value="a"> Jump</label>
+<label><input type="radio" name="q7" value="b"> Smile loudly</label>
+<label><input type="radio" name="q7" value="c"> Nod slightly</label>
+</div>
+
+<div class="question">
+<h3>8. In Greenland and Arctic regions, people greet by...</h3>
+
+<label><input type="radio" name="q8" value="a"> Sniffing the face</label>
+<label><input type="radio" name="q8" value="b"> Dancing</label>
+<label><input type="radio" name="q8" value="c"> Clapping</label>
+</div>
+
+<div class="question">
+<h3>9. In Nigeria, people snap their fingers while...</h3>
+
+<label><input type="radio" name="q9" value="a"> Hugging</label>
+<label><input type="radio" name="q9" value="b"> Hand shaking</label>
+<label><input type="radio" name="q9" value="c"> Bowing</label>
+</div>
+
+<div class="question">
+<h3>10. In Malaysia and the Philippines, young people show respect by...</h3>
+
+<label><input type="radio" name="q10" value="a"> Touching feet</label>
+<label><input type="radio" name="q10" value="b"> Pressing knuckles against the forehead</label>
+<label><input type="radio" name="q10" value="c"> Hugging elders</label>
+</div>
+
+<button type="button" onclick="checkAnswers()">
+✅ Check Answers
+</button>
+
+</form>
+
+<div id="result"></div>
+
+<div class="footer">
+Made for ESL Practice 🌎✨
+</div>
+
+</div>
+
+<script>
+
+function checkAnswers(){
+
+    const answers = {
+        q1:"b",
+        q2:"c",
+        q3:"a",
+        q4:"b",
+        q5:"a",
+        q6:"b",
+        q7:"c",
+        q8:"a",
+        q9:"b",
+        q10:"b"
+    };
+
+    let score = 0;
+
+    for(let key in answers){
+
+        let selected = document.querySelector('input[name="'+key+'"]:checked');
+
+        if(selected && selected.value === answers[key]){
+            score++;
+        }
+    }
+
+    let result = document.getElementById("result");
+
+    result.innerHTML = `🎉 You got ${score} / 10 correct!`;
+
+    if(score >= 8){
+        result.className = "correct";
+    } else {
+        result.className = "incorrect";
+    }
+}
+
+</script>
+
+</body>
+</html>
