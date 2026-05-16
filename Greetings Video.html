@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Greetings Around the World Quiz</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
 
 body{
@@ -22,6 +24,34 @@ body{
     padding:25px;
     border-radius:20px;
     box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.student-info{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:20px;
+    margin-bottom:30px;
+    padding:20px;
+    background:#f0f4ff;
+    border-radius:15px;
+}
+
+.info-field{
+    display:flex;
+    flex-direction:column;
+}
+
+.info-field label{
+    font-weight:bold;
+    margin-bottom:5px;
+    color:#2b4eff;
+}
+
+.info-field input{
+    padding:10px;
+    border:2px solid #2b4eff;
+    border-radius:8px;
+    font-size:16px;
 }
 
 h1{
@@ -66,6 +96,16 @@ h1{
     margin-top:0;
 }
 
+.question.answered-wrong{
+    background:#ffe6e6;
+    border-left:5px solid #d62828;
+}
+
+.question.answered-correct{
+    background:#e6ffe6;
+    border-left:5px solid green;
+}
+
 label{
     display:block;
     margin:10px 0;
@@ -77,6 +117,21 @@ label{
 
 label:hover{
     background:#edf2ff;
+}
+
+label.wrong-answer{
+    background:#ffcccc;
+    color:#d62828;
+}
+
+label.correct-answer{
+    background:#ccffcc;
+    color:green;
+}
+
+label.user-selected{
+    background:#fff3cd;
+    border:2px solid #ffc107;
 }
 
 button{
@@ -97,19 +152,49 @@ button:hover{
     transform:scale(1.03);
 }
 
+button:disabled{
+    background:#ccc;
+    cursor:not-allowed;
+    transform:scale(1);
+}
+
+.button-container{
+    display:flex;
+    gap:15px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:35px 0;
+}
+
 #result{
     text-align:center;
     font-size:28px;
     font-weight:bold;
     margin-top:20px;
+    padding:20px;
+    border-radius:15px;
 }
 
 .correct{
     color:green;
+    background:#e6ffe6;
 }
 
 .incorrect{
     color:#d62828;
+    background:#ffe6e6;
+}
+
+.score-percentage{
+    font-size:36px;
+    margin:10px 0;
+}
+
+.attempts-info{
+    text-align:center;
+    margin-top:15px;
+    color:#666;
+    font-size:14px;
 }
 
 .footer{
@@ -119,18 +204,49 @@ button:hover{
     font-size:14px;
 }
 
+@media print {
+    body{
+        background:white;
+        padding:0;
+    }
+    
+    .container{
+        box-shadow:none;
+        padding:0;
+    }
+    
+    .button-container{
+        display:none;
+    }
+    
+    .student-info{
+        break-inside:avoid;
+    }
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="container" id="printableContent">
 
 <h1>🌍 Greetings Around the World Quiz</h1>
 
 <p class="subtitle">
 Watch the video and answer the questions below.
 </p>
+
+<div class="student-info">
+    <div class="info-field">
+        <label for="studentName">Student Name:</label>
+        <input type="text" id="studentName" placeholder="Enter your name">
+    </div>
+    <div class="info-field">
+        <label for="quizDate">Date:</label>
+        <input type="date" id="quizDate">
+    </div>
+</div>
 
 <div class="video-container">
 <iframe 
@@ -221,9 +337,17 @@ allowfullscreen>
 <label><input type="radio" name="q10" value="c"> Hugging elders</label>
 </div>
 
-<button type="button" onclick="checkAnswers()">
-✅ Check Answers
-</button>
+<div class="button-container">
+    <button type="button" onclick="checkAnswers()">
+    ✅ Check Answers
+    </button>
+    <button type="button" id="downloadBtn" onclick="downloadPDF()" style="display:none; background:#27ae60;">
+    📥 Download PDF
+    </button>
+    <button type="button" id="resetBtn" onclick="resetQuiz()" style="display:none; background:#e74c3c;">
+    🔄 Try Again
+    </button>
+</div>
 
 </form>
 
@@ -237,7 +361,40 @@ Made for ESL Practice 🌎✨
 
 <script>
 
+let quizData = {
+    studentName: "",
+    quizDate: "",
+    attempts: 0,
+    lastScore: 0
+};
+
+window.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('quizDate').value = today;
+    loadQuizData();
+});
+
+function saveQuizData(){
+    quizData.studentName = document.getElementById('studentName').value;
+    quizData.quizDate = document.getElementById('quizDate').value;
+    localStorage.setItem('greetingsQuizData', JSON.stringify(quizData));
+}
+
+function loadQuizData(){
+    const saved = localStorage.getItem('greetingsQuizData');
+    if(saved){
+        quizData = JSON.parse(saved);
+        document.getElementById('studentName').value = quizData.studentName;
+        document.getElementById('quizDate').value = quizData.quizDate;
+    }
+}
+
 function checkAnswers(){
+
+    if(!document.getElementById('studentName').value.trim()){
+        alert('Please enter your name before submitting.');
+        return;
+    }
 
     const answers = {
         q1:"b",
@@ -253,25 +410,104 @@ function checkAnswers(){
     };
 
     let score = 0;
+    let userAnswers = {};
 
     for(let key in answers){
-
         let selected = document.querySelector('input[name="'+key+'"]:checked');
-
-        if(selected && selected.value === answers[key]){
-            score++;
+        let questionDiv = document.querySelector('input[name="'+key+'"]').closest('.question');
+        
+        if(selected){
+            userAnswers[key] = selected.value;
+            if(selected.value === answers[key]){
+                score++;
+                questionDiv.classList.add('answered-correct');
+                questionDiv.classList.remove('answered-wrong');
+            } else {
+                questionDiv.classList.add('answered-wrong');
+                questionDiv.classList.remove('answered-correct');
+            }
+        } else {
+            questionDiv.classList.add('answered-wrong');
+            questionDiv.classList.remove('answered-correct');
+            userAnswers[key] = null;
+        }
+        
+        // Mark correct and wrong answers
+        for(let key2 in answers){
+            if(key === key2){
+                const labels = questionDiv.querySelectorAll('label');
+                labels.forEach(label => {
+                    const input = label.querySelector('input');
+                    label.classList.remove('correct-answer', 'wrong-answer', 'user-selected');
+                    
+                    if(input.value === answers[key2]){
+                        label.classList.add('correct-answer');
+                    }
+                    
+                    if(userAnswers[key2] && input.value === userAnswers[key2] && userAnswers[key2] !== answers[key2]){
+                        label.classList.add('user-selected', 'wrong-answer');
+                    }
+                });
+            }
         }
     }
 
-    let result = document.getElementById("result");
+    quizData.attempts++;
+    quizData.lastScore = score;
+    saveQuizData();
 
-    result.innerHTML = `🎉 You got ${score} / 10 correct!`;
+    let result = document.getElementById("result");
+    let percentage = (score / 10) * 100;
+
+    result.innerHTML = `
+        <div class="score-percentage">${percentage.toFixed(0)}%</div>
+        <div>🎉 You got ${score} / 10 correct!</div>
+        <div class="attempts-info">Attempt #${quizData.attempts}</div>
+    `;
 
     if(score >= 8){
         result.className = "correct";
     } else {
         result.className = "incorrect";
     }
+
+    document.getElementById('downloadBtn').style.display = 'block';
+    document.getElementById('resetBtn').style.display = 'block';
+    document.getElementById('quizForm').style.display = 'none';
+}
+
+function downloadPDF(){
+    const studentName = document.getElementById('studentName').value || 'Student';
+    const element = document.getElementById('printableContent');
+    const opt = {
+        margin: 10,
+        filename: `${studentName}_Greetings_Quiz.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
+}
+
+function resetQuiz(){
+    document.getElementById('quizForm').style.display = 'block';
+    document.getElementById('downloadBtn').style.display = 'none';
+    document.getElementById('resetBtn').style.display = 'none';
+    document.getElementById('result').innerHTML = '';
+    
+    // Clear all selections
+    document.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.checked = false;
+    });
+    
+    // Remove answer highlighting
+    document.querySelectorAll('.question').forEach(q => {
+        q.classList.remove('answered-correct', 'answered-wrong');
+        q.querySelectorAll('label').forEach(label => {
+            label.classList.remove('correct-answer', 'wrong-answer', 'user-selected');
+        });
+    });
 }
 
 </script>
