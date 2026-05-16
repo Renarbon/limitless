@@ -197,6 +197,54 @@ button:disabled{
     font-size:14px;
 }
 
+#pdfContent{
+    display:none;
+}
+
+.pdf-section{
+    margin-top:20px;
+    padding:20px;
+    background:#f5f5f5;
+    border-radius:10px;
+    page-break-inside:avoid;
+}
+
+.pdf-question{
+    margin-bottom:20px;
+    padding:15px;
+    background:white;
+    border-radius:8px;
+    border-left:5px solid #ddd;
+}
+
+.pdf-question.correct-q{
+    border-left-color:green;
+    background:#f0fff0;
+}
+
+.pdf-question.wrong-q{
+    border-left-color:#d62828;
+    background:#fff5f5;
+}
+
+.pdf-question-text{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.pdf-answer-info{
+    font-size:14px;
+    margin:5px 0;
+}
+
+.pdf-answer-info.correct{
+    color:green;
+}
+
+.pdf-answer-info.wrong{
+    color:#d62828;
+}
+
 .footer{
     text-align:center;
     margin-top:30px;
@@ -221,6 +269,18 @@ button:disabled{
     
     .student-info{
         break-inside:avoid;
+    }
+    
+    .video-container{
+        display:none;
+    }
+    
+    #quizForm{
+        display:none;
+    }
+    
+    #pdfContent{
+        display:block;
     }
 }
 
@@ -353,6 +413,8 @@ allowfullscreen>
 
 <div id="result"></div>
 
+<div id="pdfContent"></div>
+
 <div class="footer">
 Made for ESL Practice 🌎✨
 </div>
@@ -361,11 +423,39 @@ Made for ESL Practice 🌎✨
 
 <script>
 
+const questionTexts = {
+    q1: "1. What do people do in Tibet when greeting?",
+    q2: "2. In some Gulf countries, people greet by...",
+    q3: "3. In many European and South American countries, people usually...",
+    q4: "4. What do the Maori people in New Zealand do?",
+    q5: "5. In Zimbabwe and Mozambique, people greet by...",
+    q6: "6. In most East Asian countries, people...",
+    q7: "7. In Southeast Asian countries, people press their palms together and...",
+    q8: "8. In Greenland and Arctic regions, people greet by...",
+    q9: "9. In Nigeria, people snap their fingers while...",
+    q10: "10. In Malaysia and the Philippines, young people show respect by..."
+};
+
+const answerChoices = {
+    q1: {a: "Bow", b: "Stick out their tongue", c: "Clap hands"},
+    q2: {a: "Hugging", b: "Shaking hands", c: "Bumping noses"},
+    q3: {a: "Air kiss on the cheeks", b: "Bow deeply", c: "Touch foreheads"},
+    q4: {a: "Shake hands", b: "Rub noses and foreheads", c: "Snap fingers"},
+    q5: {a: "Clapping hands", b: "Bowing", c: "Kissing cheeks"},
+    q6: {a: "Hug", b: "Bow", c: "Rub noses"},
+    q7: {a: "Jump", b: "Smile loudly", c: "Nod slightly"},
+    q8: {a: "Sniffing the face", b: "Dancing", c: "Clapping"},
+    q9: {a: "Hugging", b: "Hand shaking", c: "Bowing"},
+    q10: {a: "Touching feet", b: "Pressing knuckles against the forehead", c: "Hugging elders"}
+};
+
 let quizData = {
     studentName: "",
     quizDate: "",
     attempts: 0,
-    lastScore: 0
+    lastScore: 0,
+    userAnswers: {},
+    correctAnswers: {}
 };
 
 window.addEventListener('DOMContentLoaded', function() {
@@ -409,6 +499,7 @@ function checkAnswers(){
         q10:"b"
     };
 
+    quizData.correctAnswers = answers;
     let score = 0;
     let userAnswers = {};
 
@@ -452,6 +543,7 @@ function checkAnswers(){
         }
     }
 
+    quizData.userAnswers = userAnswers;
     quizData.attempts++;
     quizData.lastScore = score;
     saveQuizData();
@@ -471,9 +563,49 @@ function checkAnswers(){
         result.className = "incorrect";
     }
 
+    generatePDFContent(userAnswers, answers, score, percentage);
+
     document.getElementById('downloadBtn').style.display = 'block';
     document.getElementById('resetBtn').style.display = 'block';
     document.getElementById('quizForm').style.display = 'none';
+}
+
+function generatePDFContent(userAnswers, correctAnswers, score, percentage){
+    let pdfHTML = `
+        <div class="pdf-section">
+            <h2 style="text-align:center; color:#2b4eff;">Quiz Results</h2>
+            <p style="text-align:center; font-size:18px; font-weight:bold;">
+                Score: ${percentage.toFixed(0)}% (${score}/10)
+            </p>
+            <hr>
+    `;
+
+    for(let key in correctAnswers){
+        let isCorrect = userAnswers[key] === correctAnswers[key];
+        let userAnswer = userAnswers[key] ? answerChoices[key][userAnswers[key]] : "Not answered";
+        let correctAnswer = answerChoices[key][correctAnswers[key]];
+        
+        pdfHTML += `
+            <div class="pdf-question ${isCorrect ? 'correct-q' : 'wrong-q'}">
+                <div class="pdf-question-text">${questionTexts[key]}</div>
+                <div class="pdf-answer-info ${isCorrect ? 'correct' : 'wrong'}">
+                    ✓ Correct Answer: ${correctAnswer}
+                </div>
+        `;
+        
+        if(!isCorrect){
+            pdfHTML += `
+                <div class="pdf-answer-info wrong">
+                    ✗ Your Answer: ${userAnswer}
+                </div>
+            `;
+        }
+        
+        pdfHTML += `</div>`;
+    }
+
+    pdfHTML += `</div>`;
+    document.getElementById('pdfContent').innerHTML = pdfHTML;
 }
 
 function downloadPDF(){
@@ -495,6 +627,7 @@ function resetQuiz(){
     document.getElementById('downloadBtn').style.display = 'none';
     document.getElementById('resetBtn').style.display = 'none';
     document.getElementById('result').innerHTML = '';
+    document.getElementById('pdfContent').innerHTML = '';
     
     // Clear all selections
     document.querySelectorAll('input[type="radio"]').forEach(input => {
