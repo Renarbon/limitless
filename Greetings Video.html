@@ -289,7 +289,7 @@ button:disabled{
 
 <body>
 
-<div class="video-container" data-html2canvas-ignore="true">
+<div class="container">
 
 <h1>🌍 Greetings Around the World Quiz</h1>
 
@@ -610,7 +610,7 @@ function generatePDFContent(userAnswers, correctAnswers, score, percentage){
 
 function downloadPDF(){
     const studentName = document.getElementById('studentName').value || 'Student';
-    const element = document.getElementById('printableContent');
+    const element = document.querySelector('.container');
     const opt = {
         margin: 10,
         filename: `${studentName}_Greetings_Quiz.pdf`,
