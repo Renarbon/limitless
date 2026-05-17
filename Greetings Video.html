@@ -1,649 +1,505 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Greetings Around the World Quiz</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<style>
-
-body{
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg,#eef2ff,#f8fbff);
-    margin:0;
-    padding:20px;
-    color:#333;
-}
-
-.container{
-    max-width:950px;
-    margin:auto;
-    background:white;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.1);
-}
-
-.student-info{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:20px;
-    margin-bottom:30px;
-    padding:20px;
-    background:#f0f4ff;
-    border-radius:15px;
-}
-
-.info-field{
-    display:flex;
-    flex-direction:column;
-}
-
-.info-field label{
-    font-weight:bold;
-    margin-bottom:5px;
-    color:#2b4eff;
-}
-
-.info-field input{
-    padding:10px;
-    border:2px solid #2b4eff;
-    border-radius:8px;
-    font-size:16px;
-}
-
-h1{
-    text-align:center;
-    color:#2b4eff;
-    margin-bottom:10px;
-}
-
-.subtitle{
-    text-align:center;
-    margin-bottom:25px;
-    color:#666;
-}
-
-.video-container{
-    position: relative;
-    width:100%;
-    padding-bottom:56.25%;
-    height:0;
-    overflow:hidden;
-    border-radius:15px;
-    margin-bottom:30px;
-}
-
-.video-container iframe{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    border:none;
-}
-
-.question{
-    background:#f9f9f9;
-    padding:18px;
-    border-radius:15px;
-    margin-bottom:20px;
-}
-
-.question h3{
-    margin-top:0;
-}
-
-.question.answered-wrong{
-    background:#ffe6e6;
-    border-left:5px solid #d62828;
-}
-
-.question.answered-correct{
-    background:#e6ffe6;
-    border-left:5px solid green;
-}
-
-label{
-    display:block;
-    margin:10px 0;
-    padding:8px;
-    border-radius:8px;
-    transition:0.2s;
-    cursor:pointer;
-}
-
-label:hover{
-    background:#edf2ff;
-}
-
-label.wrong-answer{
-    background:#ffcccc;
-    color:#d62828;
-}
-
-label.correct-answer{
-    background:#ccffcc;
-    color:green;
-}
-
-label.user-selected{
-    background:#fff3cd;
-    border:2px solid #ffc107;
-}
-
-button{
-    display:block;
-    margin:35px auto;
-    padding:14px 30px;
-    border:none;
-    border-radius:12px;
-    background:#2b4eff;
-    color:white;
-    font-size:18px;
-    cursor:pointer;
-    transition:0.2s;
-}
-
-button:hover{
-    background:#1f3ad4;
-    transform:scale(1.03);
-}
-
-button:disabled{
-    background:#ccc;
-    cursor:not-allowed;
-    transform:scale(1);
-}
-
-.button-container{
-    display:flex;
-    gap:15px;
-    justify-content:center;
-    flex-wrap:wrap;
-    margin:35px 0;
-}
-
-#result{
-    text-align:center;
-    font-size:28px;
-    font-weight:bold;
-    margin-top:20px;
-    padding:20px;
-    border-radius:15px;
-}
-
-.correct{
-    color:green;
-    background:#e6ffe6;
-}
-
-.incorrect{
-    color:#d62828;
-    background:#ffe6e6;
-}
-
-.score-percentage{
-    font-size:36px;
-    margin:10px 0;
-}
-
-.attempts-info{
-    text-align:center;
-    margin-top:15px;
-    color:#666;
-    font-size:14px;
-}
-
-#pdfContent{
-    display:none;
-}
-
-.pdf-section{
-    margin-top:20px;
-    padding:20px;
-    background:#f5f5f5;
-    border-radius:10px;
-    page-break-inside:avoid;
-}
-
-.pdf-question{
-    margin-bottom:20px;
-    padding:15px;
-    background:white;
-    border-radius:8px;
-    border-left:5px solid #ddd;
-}
-
-.pdf-question.correct-q{
-    border-left-color:green;
-    background:#f0fff0;
-}
-
-.pdf-question.wrong-q{
-    border-left-color:#d62828;
-    background:#fff5f5;
-}
-
-.pdf-question-text{
-    font-weight:bold;
-    margin-bottom:8px;
-}
-
-.pdf-answer-info{
-    font-size:14px;
-    margin:5px 0;
-}
-
-.pdf-answer-info.correct{
-    color:green;
-}
-
-.pdf-answer-info.wrong{
-    color:#d62828;
-}
-
-.footer{
-    text-align:center;
-    margin-top:30px;
-    color:#777;
-    font-size:14px;
-}
-
-@media print {
-    body{
-        background:white;
-        padding:0;
+  <meta charset="UTF-8">
+  <title>Greetings Around the World Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: linear-gradient(135deg,#eef2ff,#f8fbff);
+      max-width: 950px; 
+      margin: auto; 
+      padding: 20px;
     }
-    
-    .container{
-        box-shadow:none;
-        padding:0;
+    .container { 
+      background: #fff; 
+      padding: 25px; 
+      border-radius: 20px; 
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+      margin-top: 20px; 
     }
-    
-    .button-container{
-        display:none;
+    h1 { 
+      text-align: center; 
+      color: #2b4eff; 
+      margin-bottom: 10px;
     }
-    
-    .student-info{
-        break-inside:avoid;
+    .subtitle {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #666;
     }
-    
-    .video-container{
-        display:none;
+    .student-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f0f4ff;
+      border-radius: 15px;
     }
-    
-    #quizForm{
-        display:none;
+    .info-field {
+      display: flex;
+      flex-direction: column;
     }
-    
-    #pdfContent{
-        display:block;
+    .info-field label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #2b4eff;
     }
-}
-
-</style>
+    .info-field input {
+      padding: 10px;
+      border: 2px solid #2b4eff;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 15px;
+      margin-bottom: 30px;
+    }
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .question {
+      background: #f9f9f9;
+      padding: 18px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+    .question h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    .question.answered-wrong {
+      background: #ffe6e6;
+      border-left: 5px solid #d62828;
+    }
+    .question.answered-correct {
+      background: #e6ffe6;
+      border-left: 5px solid green;
+    }
+    label {
+      display: block;
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 8px;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    label:hover {
+      background: #edf2ff;
+    }
+    label.wrong-answer {
+      background: #ffcccc;
+      color: #d62828;
+    }
+    label.correct-answer {
+      background: #ccffcc;
+      color: green;
+    }
+    label.user-selected {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+    }
+    .button-container {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 35px 0;
+    }
+    button {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 12px;
+      background: #2b4eff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #1f3ad4;
+      transform: scale(1.03);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: scale(1);
+    }
+    #result {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 15px;
+    }
+    .correct {
+      color: green;
+      background: #e6ffe6;
+    }
+    .incorrect {
+      color: #d62828;
+      background: #ffe6e6;
+    }
+    .score-percentage {
+      font-size: 36px;
+      margin: 10px 0;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #777;
+      font-size: 14px;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>🌍 Greetings Around the World Quiz</h1>
+    
+    <p class="subtitle">
+      Watch the video and answer the questions below.
+    </p>
 
-<div class="container">
-
-<h1>🌍 Greetings Around the World Quiz</h1>
-
-<p class="subtitle">
-Watch the video and answer the questions below.
-</p>
-
-<div class="student-info">
-    <div class="info-field">
+    <div class="student-info">
+      <div class="info-field">
         <label for="studentName">Student Name:</label>
-        <input type="text" id="studentName" placeholder="Enter your name">
-    </div>
-    <div class="info-field">
+        <input type="text" id="studentName" placeholder="Enter your name" required>
+      </div>
+      <div class="info-field">
         <label for="quizDate">Date:</label>
-        <input type="date" id="quizDate">
+        <input type="date" id="quizDate" required>
+      </div>
     </div>
-</div>
 
-<div class="video-container" data-html2pdf="ignore">
-<iframe 
-src="https://www.youtube.com/embed/Sfq99s_SV2M"
-allowfullscreen>
-</iframe>
-</div>
+    <div class="video-container">
+      <iframe 
+        src="https://www.youtube.com/embed/Sfq99s_SV2M"
+        allowfullscreen>
+      </iframe>
+    </div>
 
-<form id="quizForm">
+    <form id="quizForm">
+      <div class="question">
+        <h3>1. What do people do in Tibet when greeting?</h3>
+        <label><input type="radio" name="q1" value="a"> Bow</label>
+        <label><input type="radio" name="q1" value="b"> Stick out their tongue</label>
+        <label><input type="radio" name="q1" value="c"> Clap hands</label>
+      </div>
 
-<div class="question">
-<h3>1. What do people do in Tibet when greeting?</h3>
+      <div class="question">
+        <h3>2. In some Gulf countries, people greet by...</h3>
+        <label><input type="radio" name="q2" value="a"> Hugging</label>
+        <label><input type="radio" name="q2" value="b"> Shaking hands</label>
+        <label><input type="radio" name="q2" value="c"> Bumping noses</label>
+      </div>
 
-<label><input type="radio" name="q1" value="a"> Bow</label>
-<label><input type="radio" name="q1" value="b"> Stick out their tongue</label>
-<label><input type="radio" name="q1" value="c"> Clap hands</label>
-</div>
+      <div class="question">
+        <h3>3. In many European and South American countries, people usually...</h3>
+        <label><input type="radio" name="q3" value="a"> Air kiss on the cheeks</label>
+        <label><input type="radio" name="q3" value="b"> Bow deeply</label>
+        <label><input type="radio" name="q3" value="c"> Touch foreheads</label>
+      </div>
 
-<div class="question">
-<h3>2. In some Gulf countries, people greet by...</h3>
+      <div class="question">
+        <h3>4. What do the Maori people in New Zealand do?</h3>
+        <label><input type="radio" name="q4" value="a"> Shake hands</label>
+        <label><input type="radio" name="q4" value="b"> Rub noses and foreheads</label>
+        <label><input type="radio" name="q4" value="c"> Snap fingers</label>
+      </div>
 
-<label><input type="radio" name="q2" value="a"> Hugging</label>
-<label><input type="radio" name="q2" value="b"> Shaking hands</label>
-<label><input type="radio" name="q2" value="c"> Bumping noses</label>
-</div>
+      <div class="question">
+        <h3>5. In Zimbabwe and Mozambique, people greet by...</h3>
+        <label><input type="radio" name="q5" value="a"> Clapping hands</label>
+        <label><input type="radio" name="q5" value="b"> Bowing</label>
+        <label><input type="radio" name="q5" value="c"> Kissing cheeks</label>
+      </div>
 
-<div class="question">
-<h3>3. In many European and South American countries, people usually...</h3>
+      <div class="question">
+        <h3>6. In most East Asian countries, people...</h3>
+        <label><input type="radio" name="q6" value="a"> Hug</label>
+        <label><input type="radio" name="q6" value="b"> Bow</label>
+        <label><input type="radio" name="q6" value="c"> Rub noses</label>
+      </div>
 
-<label><input type="radio" name="q3" value="a"> Air kiss on the cheeks</label>
-<label><input type="radio" name="q3" value="b"> Bow deeply</label>
-<label><input type="radio" name="q3" value="c"> Touch foreheads</label>
-</div>
+      <div class="question">
+        <h3>7. In Southeast Asian countries, people press their palms together and...</h3>
+        <label><input type="radio" name="q7" value="a"> Jump</label>
+        <label><input type="radio" name="q7" value="b"> Smile loudly</label>
+        <label><input type="radio" name="q7" value="c"> Nod slightly</label>
+      </div>
 
-<div class="question">
-<h3>4. What do the Maori people in New Zealand do?</h3>
+      <div class="question">
+        <h3>8. In Greenland and Arctic regions, people greet by...</h3>
+        <label><input type="radio" name="q8" value="a"> Sniffing the face</label>
+        <label><input type="radio" name="q8" value="b"> Dancing</label>
+        <label><input type="radio" name="q8" value="c"> Clapping</label>
+      </div>
 
-<label><input type="radio" name="q4" value="a"> Shake hands</label>
-<label><input type="radio" name="q4" value="b"> Rub noses and foreheads</label>
-<label><input type="radio" name="q4" value="c"> Snap fingers</label>
-</div>
+      <div class="question">
+        <h3>9. In Nigeria, people snap their fingers while...</h3>
+        <label><input type="radio" name="q9" value="a"> Hugging</label>
+        <label><input type="radio" name="q9" value="b"> Hand shaking</label>
+        <label><input type="radio" name="q9" value="c"> Bowing</label>
+      </div>
 
-<div class="question">
-<h3>5. In Zimbabwe and Mozambique, people greet by...</h3>
+      <div class="question">
+        <h3>10. In Malaysia and the Philippines, young people show respect by...</h3>
+        <label><input type="radio" name="q10" value="a"> Touching feet</label>
+        <label><input type="radio" name="q10" value="b"> Pressing knuckles against the forehead</label>
+        <label><input type="radio" name="q10" value="c"> Hugging elders</label>
+      </div>
 
-<label><input type="radio" name="q5" value="a"> Clapping hands</label>
-<label><input type="radio" name="q5" value="b"> Bowing</label>
-<label><input type="radio" name="q5" value="c"> Kissing cheeks</label>
-</div>
+      <div class="button-container">
+        <button type="submit" style="background: #2b4eff;">✅ Check Answers</button>
+      </div>
+    </form>
 
-<div class="question">
-<h3>6. In most East Asian countries, people...</h3>
+    <div id="result"></div>
+    <button id="download-pdf" style="display:none; background:#27ae60; margin: 20px auto; display: none;">📥 Download Results as PDF</button>
+    <button id="reset-btn" style="display:none; background:#e74c3c; margin: 20px auto; display: none;">🔄 Try Again</button>
 
-<label><input type="radio" name="q6" value="a"> Hug</label>
-<label><input type="radio" name="q6" value="b"> Bow</label>
-<label><input type="radio" name="q6" value="c"> Rub noses</label>
-</div>
+    <div class="footer">
+      Made for ESL Practice 🌎✨
+    </div>
+  </div>
 
-<div class="question">
-<h3>7. In Southeast Asian countries, people press their palms together and...</h3>
+  <script>
+    const quizData = [
+      {
+        question: "1. What do people do in Tibet when greeting?",
+        options: ["Bow", "Stick out their tongue", "Clap hands"],
+        answer: 1
+      },
+      {
+        question: "2. In some Gulf countries, people greet by...",
+        options: ["Hugging", "Shaking hands", "Bumping noses"],
+        answer: 2
+      },
+      {
+        question: "3. In many European and South American countries, people usually...",
+        options: ["Air kiss on the cheeks", "Bow deeply", "Touch foreheads"],
+        answer: 0
+      },
+      {
+        question: "4. What do the Maori people in New Zealand do?",
+        options: ["Shake hands", "Rub noses and foreheads", "Snap fingers"],
+        answer: 1
+      },
+      {
+        question: "5. In Zimbabwe and Mozambique, people greet by...",
+        options: ["Clapping hands", "Bowing", "Kissing cheeks"],
+        answer: 0
+      },
+      {
+        question: "6. In most East Asian countries, people...",
+        options: ["Hug", "Bow", "Rub noses"],
+        answer: 1
+      },
+      {
+        question: "7. In Southeast Asian countries, people press their palms together and...",
+        options: ["Jump", "Smile loudly", "Nod slightly"],
+        answer: 2
+      },
+      {
+        question: "8. In Greenland and Arctic regions, people greet by...",
+        options: ["Sniffing the face", "Dancing", "Clapping"],
+        answer: 0
+      },
+      {
+        question: "9. In Nigeria, people snap their fingers while...",
+        options: ["Hugging", "Hand shaking", "Bowing"],
+        answer: 1
+      },
+      {
+        question: "10. In Malaysia and the Philippines, young people show respect by...",
+        options: ["Touching feet", "Pressing knuckles against the forehead", "Hugging elders"],
+        answer: 1
+      }
+    ];
 
-<label><input type="radio" name="q7" value="a"> Jump</label>
-<label><input type="radio" name="q7" value="b"> Smile loudly</label>
-<label><input type="radio" name="q7" value="c"> Nod slightly</label>
-</div>
+    let answersSummary = [];
+    let quizScore = 0;
+    let quizGrade = 0;
+    let studentName = "";
+    let quizDate = "";
 
-<div class="question">
-<h3>8. In Greenland and Arctic regions, people greet by...</h3>
-
-<label><input type="radio" name="q8" value="a"> Sniffing the face</label>
-<label><input type="radio" name="q8" value="b"> Dancing</label>
-<label><input type="radio" name="q8" value="c"> Clapping</label>
-</div>
-
-<div class="question">
-<h3>9. In Nigeria, people snap their fingers while...</h3>
-
-<label><input type="radio" name="q9" value="a"> Hugging</label>
-<label><input type="radio" name="q9" value="b"> Hand shaking</label>
-<label><input type="radio" name="q9" value="c"> Bowing</label>
-</div>
-
-<div class="question">
-<h3>10. In Malaysia and the Philippines, young people show respect by...</h3>
-
-<label><input type="radio" name="q10" value="a"> Touching feet</label>
-<label><input type="radio" name="q10" value="b"> Pressing knuckles against the forehead</label>
-<label><input type="radio" name="q10" value="c"> Hugging elders</label>
-</div>
-
-<div class="button-container">
-    <button type="button" onclick="checkAnswers()">
-    ✅ Check Answers
-    </button>
-    <button type="button" id="downloadBtn" onclick="downloadPDF()" style="display:none; background:#27ae60;">
-    📥 Download PDF
-    </button>
-    <button type="button" id="resetBtn" onclick="resetQuiz()" style="display:none; background:#e74c3c;">
-    🔄 Try Again
-    </button>
-</div>
-
-</form>
-
-<div id="result"></div>
-
-<div id="pdfContent"></div>
-
-<div class="footer">
-Made for ESL Practice 🌎✨
-</div>
-
-</div>
-
-<script>
-
-const questionTexts = {
-    q1: "1. What do people do in Tibet when greeting?",
-    q2: "2. In some Gulf countries, people greet by...",
-    q3: "3. In many European and South American countries, people usually...",
-    q4: "4. What do the Maori people in New Zealand do?",
-    q5: "5. In Zimbabwe and Mozambique, people greet by...",
-    q6: "6. In most East Asian countries, people...",
-    q7: "7. In Southeast Asian countries, people press their palms together and...",
-    q8: "8. In Greenland and Arctic regions, people greet by...",
-    q9: "9. In Nigeria, people snap their fingers while...",
-    q10: "10. In Malaysia and the Philippines, young people show respect by..."
-};
-
-const answerChoices = {
-    q1: {a: "Bow", b: "Stick out their tongue", c: "Clap hands"},
-    q2: {a: "Hugging", b: "Shaking hands", c: "Bumping noses"},
-    q3: {a: "Air kiss on the cheeks", b: "Bow deeply", c: "Touch foreheads"},
-    q4: {a: "Shake hands", b: "Rub noses and foreheads", c: "Snap fingers"},
-    q5: {a: "Clapping hands", b: "Bowing", c: "Kissing cheeks"},
-    q6: {a: "Hug", b: "Bow", c: "Rub noses"},
-    q7: {a: "Jump", b: "Smile loudly", c: "Nod slightly"},
-    q8: {a: "Sniffing the face", b: "Dancing", c: "Clapping"},
-    q9: {a: "Hugging", b: "Hand shaking", c: "Bowing"},
-    q10: {a: "Touching feet", b: "Pressing knuckles against the forehead", c: "Hugging elders"}
-};
-
-let quizData = {
-    studentName: "",
-    quizDate: "",
-    attempts: 0,
-    lastScore: 0,
-    userAnswers: {},
-    correctAnswers: {}
-};
-
-window.addEventListener('DOMContentLoaded', function() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('quizDate').value = today;
-    loadQuizData();
-});
-
-function saveQuizData(){
-    quizData.studentName = document.getElementById('studentName').value;
-    quizData.quizDate = document.getElementById('quizDate').value;
-    localStorage.setItem('greetingsQuizData', JSON.stringify(quizData));
-}
-
-function loadQuizData(){
-    const saved = localStorage.getItem('greetingsQuizData');
-    if(saved){
-        quizData = JSON.parse(saved);
-        document.getElementById('studentName').value = quizData.studentName;
-        document.getElementById('quizDate').value = quizData.quizDate;
-    }
-}
-
-function checkAnswers(){
-
-    if(!document.getElementById('studentName').value.trim()){
-        alert('Please enter your name before submitting.');
-        return;
-    }
-
-    const answers = {
-        q1:"b",
-        q2:"c",
-        q3:"a",
-        q4:"b",
-        q5:"a",
-        q6:"b",
-        q7:"c",
-        q8:"a",
-        q9:"b",
-        q10:"b"
-    };
-
-    quizData.correctAnswers = answers;
-    let score = 0;
-    let userAnswers = {};
-
-    for(let key in answers){
-        let selected = document.querySelector('input[name="'+key+'"]:checked');
-        let questionDiv = document.querySelector('input[name="'+key+'"]').closest('.question');
-        
-        if(selected){
-            userAnswers[key] = selected.value;
-            if(selected.value === answers[key]){
-                score++;
-                questionDiv.classList.add('answered-correct');
-                questionDiv.classList.remove('answered-wrong');
-            } else {
-                questionDiv.classList.add('answered-wrong');
-                questionDiv.classList.remove('answered-correct');
-            }
-        } else {
-            questionDiv.classList.add('answered-wrong');
-            questionDiv.classList.remove('answered-correct');
-            userAnswers[key] = null;
-        }
-        
-        // Mark correct and wrong answers
-        for(let key2 in answers){
-            if(key === key2){
-                const labels = questionDiv.querySelectorAll('label');
-                labels.forEach(label => {
-                    const input = label.querySelector('input');
-                    label.classList.remove('correct-answer', 'wrong-answer', 'user-selected');
-                    
-                    if(input.value === answers[key2]){
-                        label.classList.add('correct-answer');
-                    }
-                    
-                    if(userAnswers[key2] && input.value === userAnswers[key2] && userAnswers[key2] !== answers[key2]){
-                        label.classList.add('user-selected', 'wrong-answer');
-                    }
-                });
-            }
-        }
-    }
-
-    quizData.userAnswers = userAnswers;
-    quizData.attempts++;
-    quizData.lastScore = score;
-    saveQuizData();
-
-    let result = document.getElementById("result");
-    let percentage = (score / 10) * 100;
-
-    result.innerHTML = `
-        <div class="score-percentage">${percentage.toFixed(0)}%</div>
-        <div>🎉 You got ${score} / 10 correct!</div>
-        <div class="attempts-info">Attempt #${quizData.attempts}</div>
-    `;
-
-    if(score >= 8){
-        result.className = "correct";
-    } else {
-        result.className = "incorrect";
-    }
-
-    generatePDFContent(userAnswers, answers, score, percentage);
-
-    document.getElementById('downloadBtn').style.display = 'block';
-    document.getElementById('resetBtn').style.display = 'block';
-    document.getElementById('quizForm').style.display = 'none';
-}
-
-function generatePDFContent(userAnswers, correctAnswers, score, percentage){
-    let pdfHTML = `
-        <div class="pdf-section">
-            <h2 style="text-align:center; color:#2b4eff;">Quiz Results</h2>
-            <p style="text-align:center; font-size:18px; font-weight:bold;">
-                Score: ${percentage.toFixed(0)}% (${score}/10)
-            </p>
-            <hr>
-    `;
-
-    for(let key in correctAnswers){
-        let isCorrect = userAnswers[key] === correctAnswers[key];
-        let userAnswer = userAnswers[key] ? answerChoices[key][userAnswers[key]] : "Not answered";
-        let correctAnswer = answerChoices[key][correctAnswers[key]];
-        
-        pdfHTML += `
-            <div class="pdf-question ${isCorrect ? 'correct-q' : 'wrong-q'}">
-                <div class="pdf-question-text">${questionTexts[key]}</div>
-                <div class="pdf-answer-info ${isCorrect ? 'correct' : 'wrong'}">
-                    ✓ Correct Answer: ${correctAnswer}
-                </div>
-        `;
-        
-        if(!isCorrect){
-            pdfHTML += `
-                <div class="pdf-answer-info wrong">
-                    ✗ Your Answer: ${userAnswer}
-                </div>
-            `;
-        }
-        
-        pdfHTML += `</div>`;
-    }
-
-    pdfHTML += `</div>`;
-    document.getElementById('pdfContent').innerHTML = pdfHTML;
-}
-
-function downloadPDF(){
-    const studentName = document.getElementById('studentName').value || 'Student';
-    const element = document.querySelector('.container');
-    const opt = {
-        margin: 10,
-        filename: `${studentName}_Greetings_Quiz.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-    };
-    
-    html2pdf().set(opt).from(element).save();
-}
-
-function resetQuiz(){
-    document.getElementById('quizForm').style.display = 'block';
-    document.getElementById('downloadBtn').style.display = 'none';
-    document.getElementById('resetBtn').style.display = 'none';
-    document.getElementById('result').innerHTML = '';
-    document.getElementById('pdfContent').innerHTML = '';
-    
-    // Clear all selections
-    document.querySelectorAll('input[type="radio"]').forEach(input => {
-        input.checked = false;
+    window.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('quizDate').value = today;
     });
-    
-    // Remove answer highlighting
-    document.querySelectorAll('.question').forEach(q => {
+
+    document.getElementById('quizForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      studentName = document.getElementById('studentName').value.trim();
+      quizDate = document.getElementById('quizDate').value;
+
+      if (!studentName) {
+        alert('Please enter your name');
+        return;
+      }
+
+      quizScore = 0;
+      answersSummary = [];
+
+      quizData.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="q${idx + 1}"]:checked`);
+        let isCorrect = selected && parseInt(selected.value) === q.answer;
+        if (isCorrect) quizScore++;
+
+        answersSummary.push({
+          number: idx + 1,
+          question: q.question,
+          yourAnswer: selected ? q.options[selected.value] : 'Not answered',
+          correctAnswer: q.options[q.answer],
+          isCorrect: isCorrect
+        });
+
+        // Mark questions visually
+        const questionDiv = document.querySelectorAll('.question')[idx];
+        if (isCorrect) {
+          questionDiv.classList.add('answered-correct');
+          questionDiv.classList.remove('answered-wrong');
+        } else {
+          questionDiv.classList.add('answered-wrong');
+          questionDiv.classList.remove('answered-correct');
+        }
+
+        // Color answer choices
+        const labels = questionDiv.querySelectorAll('label');
+        labels.forEach((label, optIdx) => {
+          label.classList.remove('correct-answer', 'wrong-answer', 'user-selected');
+          if (optIdx === q.answer) {
+            label.classList.add('correct-answer');
+          }
+          if (selected && optIdx === parseInt(selected.value) && !isCorrect) {
+            label.classList.add('user-selected', 'wrong-answer');
+          }
+        });
+      });
+
+      quizGrade = Math.round((quizScore / quizData.length) * 100);
+
+      // Show result
+      document.getElementById('result').innerHTML = `
+        <div class="score-percentage">${quizGrade}%</div>
+        <div>🎉 You got ${quizScore} / ${quizData.length} correct!</div>
+        <p style="color:#0066cc;">You can now download your quiz results as a PDF.</p>
+      `;
+      if (quizGrade >= 80) {
+        document.getElementById('result').className = 'correct';
+      } else {
+        document.getElementById('result').className = 'incorrect';
+      }
+
+      // Show buttons
+      document.getElementById('download-pdf').style.display = 'block';
+      document.getElementById('reset-btn').style.display = 'block';
+      document.getElementById('quizForm').style.display = 'none';
+
+      this.querySelector('button[type="submit"]').disabled = true;
+    });
+
+    document.getElementById('download-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const green = "#009900", red = "#e53935", blue = "#1565c0", black = "#222";
+
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(blue);
+      doc.text("🌍 Greetings Around the World Quiz Results", 105, 18, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setTextColor(black);
+      doc.text(`Student Name: ${studentName}`, 15, 30);
+      doc.text(`Date: ${quizDate}`, 15, 37);
+      doc.text(`Score: ${quizGrade}/100`, 15, 44);
+
+      let y = 55;
+      answersSummary.forEach((ans, idx) => {
+        // Question
+        doc.setFontSize(11);
+        doc.setTextColor(black);
+        let questionLines = doc.splitTextToSize(`Q${ans.number}. ${ans.question}`, 180);
+        doc.text(questionLines, 15, y);
+        y += questionLines.length * 6;
+
+        // Your answer
+        doc.setFontSize(10);
+        doc.setTextColor(ans.isCorrect ? green : red);
+        let answerLines = doc.splitTextToSize(`Your answer: ${ans.yourAnswer}`, 160);
+        doc.text(answerLines, 20, y);
+        y += answerLines.length * 5;
+
+        // Correct/Incorrect mark
+        doc.setFontSize(12);
+        doc.setTextColor(ans.isCorrect ? green : red);
+        doc.text(ans.isCorrect ? "✓" : "✗", 185, y - 2);
+        y += 5;
+
+        // Correct answer
+        doc.setFontSize(10);
+        doc.setTextColor(black);
+        let correctLines = doc.splitTextToSize(`Correct answer: ${ans.correctAnswer}`, 160);
+        doc.text(correctLines, 20, y);
+        y += correctLines.length * 6 + 5;
+
+        // New page if needed
+        if (y > 260) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+
+      // Footer
+      doc.setFontSize(10);
+      doc.setTextColor(blue);
+      doc.text("Congratulations on completing the quiz! 🌎✨", 105, doc.internal.pageSize.height - 10, { align: "center" });
+
+      let safeName = studentName.replace(/\s+/g, '_');
+      doc.save(`${safeName}_Greetings_Quiz_Results.pdf`);
+
+      this.disabled = true;
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', function() {
+      document.getElementById('quizForm').style.display = 'block';
+      document.getElementById('download-pdf').style.display = 'none';
+      document.getElementById('reset-btn').style.display = 'none';
+      document.getElementById('result').innerHTML = '';
+
+      // Clear selections
+      document.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.checked = false;
+      });
+
+      // Remove highlighting
+      document.querySelectorAll('.question').forEach(q => {
         q.classList.remove('answered-correct', 'answered-wrong');
         q.querySelectorAll('label').forEach(label => {
-            label.classList.remove('correct-answer', 'wrong-answer', 'user-selected');
+          label.classList.remove('correct-answer', 'wrong-answer', 'user-selected');
         });
+      });
+
+      // Re-enable submit button
+      document.querySelector('button[type="submit"]').disabled = false;
     });
-}
-
-</script>
-
+  </script>
 </body>
 </html>
