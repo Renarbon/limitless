@@ -30,6 +30,16 @@
       margin-bottom: 25px;
       color: #666;
     }
+    .attempts-counter {
+      background: #e3f2fd;
+      border-left: 4px solid #2b4eff;
+      padding: 12px 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+      color: #1565c0;
+    }
     .student-info {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -173,6 +183,10 @@
     <p class="subtitle">
       Watch the video and answer the questions below.
     </p>
+
+    <div class="attempts-counter">
+      📊 Attempt: <span id="attemptNumber">1</span>
+    </div>
 
     <div class="student-info">
       <div class="info-field">
@@ -336,10 +350,20 @@
     let quizGrade = 0;
     let studentName = "";
     let quizDate = "";
+    let attemptCount = 1;
 
+    // Cargar intentos desde localStorage
     window.addEventListener('DOMContentLoaded', function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('quizDate').value = today;
+
+      // Inicializar contador de intentos
+      const storedAttempts = localStorage.getItem('quizAttempts');
+      if (storedAttempts) {
+        attemptCount = parseInt(storedAttempts) + 1;
+      }
+      localStorage.setItem('quizAttempts', attemptCount);
+      document.getElementById('attemptNumber').textContent = attemptCount;
     });
 
     document.getElementById('quizForm').addEventListener('submit', function(e) {
@@ -420,65 +444,94 @@
       const doc = new jsPDF();
 
       const green = "#009900", red = "#e53935", blue = "#1565c0", black = "#222";
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - (2 * margin);
 
-      // Header
-      doc.setFontSize(20);
+      // Header - Título mejorado
+      doc.setFontSize(18);
       doc.setTextColor(blue);
-      doc.text("🌍 Greetings Around the World Quiz Results", 105, 18, { align: "center" });
+      
+      // Dividir título en dos líneas para mejor presentación
+      const titleLines = doc.splitTextToSize("🌍 Greetings Around the World", contentWidth);
+      const subtitleLines = doc.splitTextToSize("Quiz Results", contentWidth);
+      
+      let headerY = 15;
+      titleLines.forEach(line => {
+        doc.text(line, pageWidth / 2, headerY, { align: "center" });
+        headerY += 7;
+      });
+      subtitleLines.forEach(line => {
+        doc.text(line, pageWidth / 2, headerY, { align: "center" });
+        headerY += 7;
+      });
 
+      // Línea separadora
+      doc.setDrawColor(blue);
+      doc.line(margin, headerY + 2, pageWidth - margin, headerY + 2);
+
+      // Información del estudiante
       doc.setFontSize(12);
       doc.setTextColor(black);
-      doc.text(`Student Name: ${studentName}`, 15, 30);
-      doc.text(`Date: ${quizDate}`, 15, 37);
-      doc.text(`Score: ${quizGrade}/100`, 15, 44);
+      let y = headerY + 12;
+      doc.text(`Student Name: ${studentName}`, margin, y);
+      y += 8;
+      doc.text(`Date: ${quizDate}`, margin, y);
+      y += 8;
+      doc.text(`Attempt: ${attemptCount}`, margin, y);
+      y += 8;
+      doc.text(`Score: ${quizGrade}/100`, margin, y);
+      y += 15;
 
-      let y = 55;
+      // Respuestas
       answersSummary.forEach((ans, idx) => {
-        // Question
+        // Verificar si necesita nueva página
+        if (y > pageHeight - 40) {
+          doc.addPage();
+          y = margin;
+        }
+
+        // Número y pregunta
         doc.setFontSize(11);
         doc.setTextColor(black);
-        let questionLines = doc.splitTextToSize(`Q${ans.number}. ${ans.question}`, 180);
-        doc.text(questionLines, 15, y);
-        y += questionLines.length * 6;
+        doc.setFont(undefined, "bold");
+        let questionLines = doc.splitTextToSize(`Q${ans.number}. ${ans.question}`, contentWidth);
+        doc.text(questionLines, margin, y);
+        y += questionLines.length * 6 + 2;
 
-        // Your answer
+        // Tu respuesta
+        doc.setFont(undefined, "normal");
         doc.setFontSize(10);
         doc.setTextColor(ans.isCorrect ? green : red);
-        let answerLines = doc.splitTextToSize(`Your answer: ${ans.yourAnswer}`, 160);
-        doc.text(answerLines, 20, y);
-        y += answerLines.length * 5;
+        let answerLines = doc.splitTextToSize(`Your answer: ${ans.yourAnswer}`, contentWidth - 20);
+        doc.text(answerLines, margin + 5, y);
+        y += answerLines.length * 5 + 1;
 
-        // Correct/Incorrect mark
-        doc.setFontSize(12);
+        // Marca correcta/incorrecta
+        doc.setFontSize(14);
         doc.setTextColor(ans.isCorrect ? green : red);
-        doc.text(ans.isCorrect ? "✓" : "✗", 185, y - 2);
-        y += 5;
+        doc.text(ans.isCorrect ? "✓" : "✗", pageWidth - margin - 10, y - 3);
 
-        // Correct answer (only show if wrong)
+        // Respuesta correcta (solo si es incorrecta)
         if (!ans.isCorrect) {
           doc.setFontSize(10);
           doc.setTextColor(black);
-          let correctLines = doc.splitTextToSize(`Correct answer: ${ans.correctAnswer}`, 160);
-          doc.text(correctLines, 20, y);
-          y += correctLines.length * 6 + 5;
+          let correctLines = doc.splitTextToSize(`Correct answer: ${ans.correctAnswer}`, contentWidth - 20);
+          doc.text(correctLines, margin + 5, y + 3);
+          y += correctLines.length * 5 + 8;
         } else {
-          y += 5;
-        }
-
-        // New page if needed
-        if (y > 260) {
-          doc.addPage();
-          y = 20;
+          y += 8;
         }
       });
 
       // Footer
       doc.setFontSize(10);
       doc.setTextColor(blue);
-      doc.text("Congratulations on completing the quiz! 🌎✨", 105, doc.internal.pageSize.height - 10, { align: "center" });
+      doc.text("Congratulations on completing the quiz! 🌎✨", pageWidth / 2, pageHeight - 8, { align: "center" });
 
       let safeName = studentName.replace(/\s+/g, '_');
-      doc.save(`${safeName}_Greetings_Quiz_Results.pdf`);
+      doc.save(`${safeName}_Greetings_Quiz_Results_Attempt${attemptCount}.pdf`);
 
       this.disabled = true;
     });
@@ -504,6 +557,11 @@
 
       // Re-enable submit button
       document.querySelector('button[type="submit"]').disabled = false;
+
+      // Incrementar intentos
+      attemptCount++;
+      localStorage.setItem('quizAttempts', attemptCount);
+      document.getElementById('attemptNumber').textContent = attemptCount;
     });
   </script>
 </body>
