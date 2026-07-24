@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Calculadora de Inversión</title>
+
+<style>
+
+body{
+
+font-family:Arial;
+
+background:#edf2f7;
+
+margin:15px;
+
+}
+
+.card{
+
+background:white;
+
+padding:20px;
+
+border-radius:15px;
+
+box-shadow:0 3px 10px rgba(0,0,0,.2);
+
+max-width:900px;
+
+margin:auto;
+
+}
+
+h2{
+
+margin-top:0;
+
+}
+
+input{
+
+width:100%;
+
+padding:12px;
+
+font-size:16px;
+
+border:1px solid #ccc;
+
+border-radius:8px;
+
+box-sizing:border-box;
+
+}
+
+.grid{
+
+display:grid;
+
+grid-template-columns:2fr 1fr 1fr;
+
+gap:10px;
+
+}
+
+button{
+
+padding:12px;
+
+font-size:16px;
+
+border:none;
+
+border-radius:8px;
+
+background:#1976d2;
+
+color:white;
+
+cursor:pointer;
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+margin-top:20px;
+
+}
+
+th{
+
+background:#1976d2;
+
+color:white;
+
+padding:10px;
+
+}
+
+td{
+
+padding:10px;
+
+border:1px solid #ddd;
+
+}
+
+.total{
+
+font-size:28px;
+
+font-weight:bold;
+
+text-align:right;
+
+margin-top:15px;
+
+}
+
+.borrar{
+
+background:#d32f2f;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>🏢 Calculadora de Inversión</h2>
+
+<div class="grid">
+
+<input id="descripcion" placeholder="Descripción">
+
+<input
+
+id="factura"
+
+placeholder="Factura"
+
+type="tel"
+
+inputmode="numeric">
+
+<input
+
+id="monto"
+
+placeholder="Monto"
+
+type="text"
+
+inputmode="decimal">
+
+</div>
+
+<br>
+
+<button onclick="agregar()">
+
+Agregar
+
+</button>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Descripción</th>
+
+<th>Factura</th>
+
+<th>Monto</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody id="tbody">
+
+</tbody>
+
+</table>
+
+<div class="total">
+
+TOTAL L
+
+<span id="total">0.00</span>
+
+</div>
+
+</div>
+
+<script>
+
+let total=0;
+
+function agregar(){
+
+const descripcion=document.getElementById("descripcion").value.trim();
+
+const factura=document.getElementById("factura").value.trim();
+
+let monto=document.getElementById("monto").value;
+
+monto=monto.replace(",", ".");
+
+monto=parseFloat(monto);
+
+if(descripcion=="" || isNaN(monto)){
+
+alert("Ingrese descripción y monto");
+
+return;
+
+}
+
+const tbody=document.getElementById("tbody");
+
+const fila=document.createElement("tr");
+
+fila.innerHTML=`
+
+<td>${descripcion}</td>
+
+<td>${factura}</td>
+
+<td style="text-align:right">
+
+L ${monto.toLocaleString("es-HN",{minimumFractionDigits:2})}
+
+</td>
+
+<td>
+
+<button class="borrar">X</button>
+
+</td>
+
+`;
+
+fila.querySelector("button").onclick=function(){
+
+total-=monto;
+
+actualizar();
+
+fila.remove();
+
+};
+
+tbody.appendChild(fila);
+
+total+=monto;
+
+actualizar();
+
+document.getElementById("descripcion").value="";
+
+document.getElementById("factura").value="";
+
+document.getElementById("monto").value="";
+
+document.getElementById("descripcion").focus();
+
+}
+
+function actualizar(){
+
+document.getElementById("total").innerHTML=
+
+total.toLocaleString("es-HN",{minimumFractionDigits:2});
+
+}
+
+</script>
+
+</body>
+
+</html>
