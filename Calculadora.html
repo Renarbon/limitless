@@ -44,7 +44,7 @@ margin-top:0;
 
 }
 
-input{
+input, select{
 
 width:100%;
 
@@ -146,26 +146,23 @@ background:#d32f2f;
 
 <div class="grid">
 
-<input id="descripcion" placeholder="Descripción">
+<!-- Descripción cambiado a dropdown con dos opciones -->
+<select id="descripcion">
+  <option value="Materiales">Materiales</option>
+  <option value="Mano de Obra">Mano de Obra</option>
+</select>
 
+<!-- La factura se autogenerará; el campo es readonly y muestra el siguiente número -->
 <input
-
 id="factura"
-
 placeholder="Factura"
-
-type="tel"
-
-inputmode="numeric">
+type="text"
+readonly>
 
 <input
-
 id="monto"
-
 placeholder="Monto"
-
 type="text"
-
 inputmode="decimal">
 
 </div>
@@ -215,13 +212,21 @@ TOTAL L
 <script>
 
 let total=0;
+let facturaCounter = 1; // comienza en 1 -> 0001
+
+function formatFactura(n){
+  return n.toString().padStart(4,'0');
+}
+
+// inicializar el campo factura con 0001
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('factura').value = formatFactura(facturaCounter);
+  document.getElementById('descripcion').focus();
+});
 
 function agregar(){
-
 const descripcion=document.getElementById("descripcion").value.trim();
-
 const factura=document.getElementById("factura").value.trim();
-
 let monto=document.getElementById("monto").value;
 
 monto=monto.replace(",", ".");
@@ -229,69 +234,52 @@ monto=monto.replace(",", ".");
 monto=parseFloat(monto);
 
 if(descripcion=="" || isNaN(monto)){
-
 alert("Ingrese descripción y monto");
-
 return;
-
 }
 
 const tbody=document.getElementById("tbody");
-
 const fila=document.createElement("tr");
 
+// capturamos el monto y factura actuales para que el handler de borrar use los valores correctos
+const montoGuardado = monto;
+const facturaGuardada = factura;
+
 fila.innerHTML=`
-
 <td>${descripcion}</td>
-
-<td>${factura}</td>
-
+<td>${facturaGuardada}</td>
 <td style="text-align:right">
-
-L ${monto.toLocaleString("es-HN",{minimumFractionDigits:2})}
-
+L ${montoGuardado.toLocaleString("es-HN",{minimumFractionDigits:2})}
 </td>
-
 <td>
-
 <button class="borrar">X</button>
-
 </td>
-
 `;
 
 fila.querySelector("button").onclick=function(){
-
-total-=monto;
-
+total-=montoGuardado;
 actualizar();
-
 fila.remove();
-
 };
 
 tbody.appendChild(fila);
 
-total+=monto;
-
+total+=montoGuardado;
 actualizar();
 
-document.getElementById("descripcion").value="";
+// incrementar el contador de facturas y actualizar el campo readonly
+facturaCounter++;
+document.getElementById('factura').value = formatFactura(facturaCounter);
 
-document.getElementById("factura").value="";
-
+// limpiar monto y enfocar
+// mantenemos la selección (descripcion) porque ahora es dropdown
 document.getElementById("monto").value="";
-
 document.getElementById("descripcion").focus();
-
 }
 
 function actualizar(){
-
 document.getElementById("total").innerHTML=
-
 total.toLocaleString("es-HN",{minimumFractionDigits:2});
-
 }
 
 </script>
