@@ -361,7 +361,7 @@ total.toLocaleString("es-HN",{minimumFractionDigits:2});
 // Abre una nueva ventana con el contenido listo para imprimir. Espera a onload antes de imprimir para evitar truncados
 function imprimirPDF(){
   const card = document.querySelector('.card');
-  const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Exportar a PDF</title><style>
+  const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Inversiones Reimar - Costos</title><style>
     body{font-family:Arial;margin:10mm}
     table{width:100%;border-collapse:collapse;margin-top:20px}
     th{background:#1976d2;color:white;padding:10px}
@@ -411,7 +411,7 @@ function exportarCSV(){
   const url = URL.createObjectURL(blob);
   
   link.setAttribute('href', url);
-  link.setAttribute('download', 'calculadora_inversion.csv');
+  link.setAttribute('download', 'Inversiones Reimar - Costos.csv');
   link.style.visibility = 'hidden';
   
   document.body.appendChild(link);
@@ -445,7 +445,7 @@ function exportarExcel(){
   const url = URL.createObjectURL(blob);
   
   link.setAttribute('href', url);
-  link.setAttribute('download', 'calculadora_inversion.xls');
+  link.setAttribute('download', 'Inversiones Reimar - Costos.xls');
   link.style.visibility = 'hidden';
   
   document.body.appendChild(link);
