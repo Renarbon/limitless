@@ -244,6 +244,14 @@ function getNextAvailable(){
 document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('factura').value = formatFactura(getNextAvailable());
   document.getElementById('descripcion').focus();
+  
+  // Agregar listener para Enter en el campo de monto
+  document.getElementById('monto').addEventListener('keypress', function(event){
+    if(event.key === 'Enter'){
+      event.preventDefault();
+      agregar();
+    }
+  });
 });
 
 function agregar(){
