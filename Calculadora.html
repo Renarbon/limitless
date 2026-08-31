@@ -88,6 +88,26 @@ cursor:pointer;
 
 }
 
+.button-group{
+
+display:flex;
+
+gap:10px;
+
+flex-wrap:wrap;
+
+margin-bottom:20px;
+
+}
+
+.button-group button{
+
+flex:1;
+
+min-width:150px;
+
+}
+
 table{
 
 width:100%;
@@ -186,8 +206,12 @@ Agregar
 
 </button>
 
-<!-- Botón para exportar a PDF (usa la ventana de impresión del navegador) -->
-<button onclick="imprimirPDF()" style="margin-left:10px;background:#4caf50">Exportar a PDF</button>
+<!-- Grupo de botones de exportación -->
+<div class="button-group">
+  <button onclick="imprimirPDF()" style="background:#4caf50">📄 Exportar a PDF</button>
+  <button onclick="exportarCSV()" style="background:#ff9800">📊 Exportar a CSV</button>
+  <button onclick="exportarExcel()" style="background:#2196F3">📈 Exportar a Excel</button>
+</div>
 
 <table>
 
@@ -363,6 +387,71 @@ function imprimirPDF(){
       setTimeout(() => { w.focus(); w.print(); }, 1000);
     }
   };
+}
+
+// Exportar a CSV
+function exportarCSV(){
+  let csv = 'Descripción,Factura,Monto\n';
+  
+  const tbody = document.getElementById('tbody');
+  const filas = tbody.querySelectorAll('tr');
+  
+  filas.forEach(fila => {
+    const celdas = fila.querySelectorAll('td');
+    const descripcion = celdas[0].textContent.trim();
+    const factura = celdas[1].textContent.trim();
+    const monto = celdas[2].textContent.trim().replace('L ', '').trim();
+    
+    csv += `"${descripcion}","${factura}","${monto}"\n`;
+  });
+  
+  csv += `\nTOTAL,L,${document.getElementById('total').textContent}\n`;
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'calculadora_inversion.csv');
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Exportar a Excel
+function exportarExcel(){
+  let html = '<table border="1">';
+  html += '<thead><tr><th>Descripción</th><th>Factura</th><th>Monto</th></tr></thead>';
+  html += '<tbody>';
+  
+  const tbody = document.getElementById('tbody');
+  const filas = tbody.querySelectorAll('tr');
+  
+  filas.forEach(fila => {
+    const celdas = fila.querySelectorAll('td');
+    const descripcion = celdas[0].textContent.trim();
+    const factura = celdas[1].textContent.trim();
+    const monto = celdas[2].textContent.trim().replace('L ', '').trim();
+    
+    html += `<tr><td>${descripcion}</td><td>${factura}</td><td>${monto}</td></tr>`;
+  });
+  
+  html += `<tr><td colspan="2"><b>TOTAL L</b></td><td><b>${document.getElementById('total').textContent}</b></td></tr>`;
+  html += '</tbody></table>';
+  
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'calculadora_inversion.xls');
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 </script>
