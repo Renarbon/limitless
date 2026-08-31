@@ -296,8 +296,7 @@ document.getElementById("total").innerHTML=
 total.toLocaleString("es-HN",{minimumFractionDigits:2});
 }
 
-// Abre una nueva ventana con el contenido listo para imprimir. Esto suele evitar truncados
-// y hace que el navegador genere todas las páginas en el PDF.
+// Abre una nueva ventana con el contenido listo para imprimir. Espera a onload antes de imprimir para evitar truncados
 function imprimirPDF(){
   const card = document.querySelector('.card');
   const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Exportar a PDF</title><style>
@@ -313,8 +312,18 @@ function imprimirPDF(){
   w.document.open();
   w.document.write(htmlContent);
   w.document.close();
-  // Dar tiempo a que el navegador renderice el contenido antes de imprimir
-  setTimeout(() => { w.focus(); w.print(); /* w.close(); */ }, 500);
+
+  // Esperar a que la nueva ventana termine de cargar/renderizar, luego imprimir
+  w.onload = function(){
+    try {
+      w.focus();
+      w.print();
+      // w.close(); // descomenta si quieres cerrar la ventana automáticamente después de imprimir
+    } catch(e) {
+      // fallback: reintentar con un pequeño retardo
+      setTimeout(() => { w.focus(); w.print(); }, 1000);
+    }
+  };
 }
 
 </script>
