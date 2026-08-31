@@ -226,21 +226,29 @@ TOTAL L
 <script>
 
 let total=0;
-let facturaCounter = 1; // comienza en 1 -> 0001
+let facturaCounter = 1; // siguiente número nuevo (1 -> 0001)
+let freeFacturas = []; // pool de números liberados para reutilizar
 
 function formatFactura(n){
   return n.toString().padStart(4,'0');
 }
 
-// inicializar el campo factura con 0001
+function getNextAvailable(){
+  if(freeFacturas.length>0){
+    return Math.min(...freeFacturas);
+  }
+  return facturaCounter;
+}
+
+// inicializar el campo factura con 0001 o el siguiente disponible
 document.addEventListener('DOMContentLoaded', function(){
-  document.getElementById('factura').value = formatFactura(facturaCounter);
+  document.getElementById('factura').value = formatFactura(getNextAvailable());
   document.getElementById('descripcion').focus();
 });
 
 function agregar(){
 const descripcion=document.getElementById("descripcion").value.trim();
-const factura=document.getElementById("factura").value.trim();
+const facturaStr=document.getElementById("factura").value.trim();
 let monto=document.getElementById("monto").value;
 
 monto=monto.replace(",", ".");
@@ -252,16 +260,19 @@ alert("Ingrese descripción y monto");
 return;
 }
 
+const facturaNumber = parseInt(facturaStr,10);
+
 const tbody=document.getElementById("tbody");
 const fila=document.createElement("tr");
 
 // capturamos el monto y factura actuales para que el handler de borrar use los valores correctos
 const montoGuardado = monto;
-const facturaGuardada = factura;
+const facturaGuardadaStr = formatFactura(facturaNumber);
+const facturaGuardadaNum = facturaNumber;
 
 fila.innerHTML=`
 <td>${descripcion}</td>
-<td>${facturaGuardada}</td>
+<td>${facturaGuardadaStr}</td>
 <td style="text-align:right">
 L ${montoGuardado.toLocaleString("es-HN",{minimumFractionDigits:2})}
 </td>
@@ -271,9 +282,17 @@ L ${montoGuardado.toLocaleString("es-HN",{minimumFractionDigits:2})}
 `;
 
 fila.querySelector("button").onclick=function(){
-total-=montoGuardado;
-actualizar();
-fila.remove();
+  // Al borrar, devolvemos el número de factura al pool para reutilizar
+  total-=montoGuardado;
+  actualizar();
+  // evitar duplicados en el pool
+  if(!freeFacturas.includes(facturaGuardadaNum)){
+    freeFacturas.push(facturaGuardadaNum);
+    freeFacturas.sort((a,b)=>a-b);
+  }
+  // actualizar el campo factura al siguiente disponible
+  document.getElementById('factura').value = formatFactura(getNextAvailable());
+  fila.remove();
 };
 
 tbody.appendChild(fila);
@@ -281,9 +300,21 @@ tbody.appendChild(fila);
 total+=montoGuardado;
 actualizar();
 
-// incrementar el contador de facturas y actualizar el campo readonly
-facturaCounter++;
-document.getElementById('factura').value = formatFactura(facturaCounter);
+// Consumir el número usado: si estaba en freeFacturas, quitarlo; si no, y era el next nuevo, incrementar facturaCounter
+const idx = freeFacturas.indexOf(facturaNumber);
+if(idx!==-1){
+  freeFacturas.splice(idx,1);
+} else if(facturaNumber >= facturaCounter){
+  // si usamos el número que era el siguiente nuevo, avanzamos el contador
+  facturaCounter = facturaNumber + 1;
+}
+// Asegurarnos de que facturaCounter no colisione con números liberados
+while(freeFacturas.includes(facturaCounter)){
+  facturaCounter++;
+}
+
+// actualizar el campo readonly con el siguiente disponible
+document.getElementById('factura').value = formatFactura(getNextAvailable());
 
 // limpiar monto y enfocar
 // mantenemos la selección (descripcion) porque ahora es dropdown
