@@ -348,10 +348,9 @@ while(freeFacturas.includes(facturaCounter)){
 // actualizar el campo readonly con el siguiente disponible
 document.getElementById('factura').value = formatFactura(getNextAvailable());
 
-// limpiar monto y enfocar
-// mantenemos la selección (descripcion) porque ahora es dropdown
+// limpiar monto y mantener el foco en el campo de monto
 document.getElementById("monto").value="";
-document.getElementById("descripcion").focus();
+document.getElementById("monto").focus();
 }
 
 function actualizar(){
